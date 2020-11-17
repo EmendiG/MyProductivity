@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="mainWindow" prefHeight="661.0" prefWidth="848.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="planner.Controller">
+  <children>
+    <MenuBar VBox.vgrow="NEVER">
+      <menus>
+        <Menu mnemonicParsing="false" text="File">
+          <items>
+            <MenuItem mnemonicParsing="false" text="New" />
+            <MenuItem mnemonicParsing="false" text="Open…" />
+            <Menu mnemonicParsing="false" text="Open Recent" />
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem mnemonicParsing="false" text="Close" />
+            <MenuItem mnemonicParsing="false" text="Save" />
+            <MenuItem mnemonicParsing="false" text="Save As…" />
+            <MenuItem mnemonicParsing="false" text="Revert" />
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem mnemonicParsing="false" text="Preferences…" />
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem mnemonicParsing="false" text="Quit" />
+          </items>
+        </Menu>
+        <Menu mnemonicParsing="false" text="Edit">
+          <items>
+            <MenuItem mnemonicParsing="false" text="Undo" />
+            <MenuItem mnemonicParsing="false" text="Redo" />
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem mnemonicParsing="false" text="Cut" />
+            <MenuItem mnemonicParsing="false" text="Copy" />
+            <MenuItem mnemonicParsing="false" text="Paste" />
+            <MenuItem mnemonicParsing="false" text="Delete" />
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem mnemonicParsing="false" text="Select All" />
+            <MenuItem mnemonicParsing="false" text="Unselect All" />
+          </items>
+        </Menu>
+        <Menu mnemonicParsing="false" text="Help">
+          <items>
+            <MenuItem mnemonicParsing="false" text="About MyHelloApp" />
+          </items>
+        </Menu>
+      </menus>
+    </MenuBar>
+    <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
+      <children>
+            <TabPane layoutX="120.0" layoutY="63.0" prefHeight="375.0" prefWidth="640.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+              <tabs>
+                <Tab text="MyTask">
+                  <content>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                           <children>
+                              <SplitPane dividerPositions="0.33" layoutX="193.0" layoutY="87.0" pickOnBounds="false" prefHeight="346.0" prefWidth="640.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                <items>
+                                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                                       <children>
+                                          <ListView fx:id="tasksTable" layoutX="-6.0" layoutY="51.0" opacity="1" prefHeight="554.0" prefWidth="273.0" style="-fx-selection-bar: lightblue;  -fx-selection-bar-non-focused: lightblue;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="3.0" AnchorPane.topAnchor="51.0" />
+                                          <TextField fx:id="filterTasksTextField" layoutX="10.0" layoutY="14.0" prefHeight="25.0" prefWidth="254.0" promptText="Search task..." />
+                                       </children>
+                                    </AnchorPane>
+                                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                                       <children>
+                                          <ButtonBar layoutY="7.0" prefHeight="41.0" prefWidth="183.0">
+                                            <buttons>
+                                                <Button fx:id="startButton" alignment="CENTER" mnemonicParsing="false" onAction="#startCurrentTask">
+                                                    <tooltip>
+                                                        <Tooltip text="Start the task timer" />
+                                                    </tooltip>
+                                                    <graphic>
+                                                        <ImageView fitWidth="29.0">
+                                                            <Image url="@/toolbarButtonGraphics/media/Play24.gif" />
+                                                        </ImageView>
+                                                    </graphic>
+                                                </Button>
+                                                <Button fx:id="stopButton" mnemonicParsing="false" onAction="#stopCurrentTask">
+                                                    <tooltip>
+                                                        <Tooltip text="Stop the task timer" />
+                                                    </tooltip>
+                                                    <graphic>
+                                                        <ImageView>
+                                                            <Image url="@/toolbarButtonGraphics/media/Stop24.gif" />
+                                                        </ImageView>
+                                                    </graphic>
+                                                </Button>
+                                            </buttons>
+                                          </ButtonBar>
+                                          <Label alignment="CENTER" layoutX="444.0" layoutY="19.0" prefHeight="17.0" prefWidth="80.0" text="Current time:" />
+                                          <Label fx:id="currentTimeLabel" alignment="CENTER" layoutX="444.0" layoutY="41.0" prefHeight="17.0" prefWidth="80.0" text="None" />
+                                          <Label alignment="CENTER" layoutX="336.0" layoutY="19.0" prefHeight="17.0" prefWidth="80.0" text="Current task:" />
+                                          <Label fx:id="currentTaskLabel" alignment="CENTER" layoutX="336.0" layoutY="41.0" prefHeight="17.0" prefWidth="80.0" text="None" />
+                                          <TableView layoutX="23.0" layoutY="70.0" prefHeight="214.0" prefWidth="515.0">
+                                            <columns>
+                                              <TableColumn prefWidth="237.0" text="Task" />
+                                              <TableColumn prefWidth="89.0" text="Today [m]" />
+                                                <TableColumn prefWidth="94.0" text="Goal [%]" />
+                                                <TableColumn prefWidth="94.0" text="Time left [m]" />
+                                            </columns>
+                                          </TableView>
+                                          <TableView layoutX="23.0" layoutY="302.0" prefHeight="297.0" prefWidth="515.0">
+                                             <columns>
+                                                <TableColumn prefWidth="237.0" text="Task" />
+                                                <TableColumn prefWidth="89.0" text="Week[m]" />
+                                                <TableColumn prefWidth="94.0" text="Goal [%]" />
+                                                <TableColumn prefWidth="94.0" text="Time left [m]" />
+                                             </columns>
+                                          </TableView>
+                                          <Button layoutX="223.0" layoutY="12.0" mnemonicParsing="false" onAction="#showNewTaskWindow" prefHeight="32.0" prefWidth="75.0">
+                                              <tooltip>
+                                                  <Tooltip text="Add new task" />
+                                              </tooltip>
+                                              <graphic>
+                                                  <ImageView fitHeight="21.0" fitWidth="25.0" preserveRatio="true">
+                                                      <Image url="@/toolbarButtonGraphics/general/Add24.gif" />
+                                                  </ImageView>
+                                              </graphic>
+                                          </Button>
+                                       </children>
+                                    </AnchorPane>
+                                </items>
+                              </SplitPane>
+                           </children>
+                        </AnchorPane>
+                  </content>
+                </Tab>
+                  <Tab text="MyAnalysis">
+                     <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                           <children>
+                              <DatePicker layoutX="557.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
+                              <DatePicker layoutX="715.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
+                              <Label layoutX="517.0" layoutY="14.0" prefHeight="17.0" prefWidth="40.0" text="From:" />
+                              <Label layoutX="691.0" layoutY="14.0" prefHeight="17.0" prefWidth="24.0" text="To:" />
+                              <ScatterChart layoutY="46.0" prefHeight="315.0" prefWidth="837.0">
+                                 <xAxis>
+                                    <CategoryAxis side="BOTTOM" />
+                                 </xAxis>
+                                 <yAxis>
+                                    <NumberAxis side="LEFT" />
+                                 </yAxis>
+                              </ScatterChart>
+                              <BarChart layoutY="346.0" prefHeight="247.0" prefWidth="835.0">
+                                 <xAxis>
+                                    <CategoryAxis side="BOTTOM" />
+                                 </xAxis>
+                                 <yAxis>
+                                    <NumberAxis side="LEFT" />
+                                 </yAxis>
+                              </BarChart>
+                              <ChoiceBox layoutX="53.0" layoutY="10.0" prefHeight="25.0" prefWidth="215.0" />
+                              <Label layoutX="20.0" layoutY="14.0" prefHeight="17.0" prefWidth="33.0" text="Task:" />
+                              <ChoiceBox layoutX="358.0" layoutY="10.0" prefHeight="25.0" prefWidth="136.0" />
+                              <Label layoutX="296.0" layoutY="14.0" prefHeight="17.0" prefWidth="62.0" text="Weekday:" />
+                           </children>
+                        </AnchorPane>
+                     </content>
+                  </Tab>
+                <Tab text="MyData">
+                  <content>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                           <children>
+                              <DatePicker layoutX="557.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
+                              <DatePicker layoutX="715.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
+                              <Label layoutX="517.0" layoutY="14.0" prefHeight="17.0" prefWidth="40.0" text="From:" />
+                              <Label layoutX="691.0" layoutY="14.0" prefHeight="17.0" prefWidth="24.0" text="To:" />
+                              <ChoiceBox layoutX="60.0" layoutY="10.0" prefHeight="25.0" prefWidth="215.0" />
+                              <Label layoutX="20.0" layoutY="14.0" prefHeight="17.0" prefWidth="40.0" text="Task:" />
+                              <TableView layoutX="17.0" layoutY="52.0" prefHeight="155.0" prefWidth="816.0">
+                                <columns>
+                                  <TableColumn prefWidth="350.0" text="Task" />
+                                  <TableColumn minWidth="0.0" prefWidth="150.0" text="Month [h]" />
+                                    <TableColumn prefWidth="150.0" text="Goal[%]" />
+                                    <TableColumn minWidth="0.0" prefWidth="150.0" text="Avg. day[m]" />
+                                </columns>
+                              </TableView>
+                           </children>
+                        </AnchorPane>
+                  </content>
+                </Tab>
+              </tabs>
+            </TabPane>
+      </children>
+    </AnchorPane>
+  </children>
+</VBox>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<DialogPane fx:id="newTaskWindow" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="planner.NewTaskController">
+   <content>
+      <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="250.0" prefWidth="450.0">
+         <children>
+            <Label layoutX="48.0" layoutY="20.0" text="Add new task">
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+            </Label>
+            <Label layoutX="48.0" layoutY="74.0" text="Task name:" />
+            <TextField fx:id="nameTextField" layoutX="143.0" layoutY="70.0" />
+            <Label layoutX="48.0" layoutY="112.0" text="Task goal:" />
+            <ChoiceBox fx:id="goalChoiceBox" layoutX="143.0" layoutY="113.0" prefWidth="150.0" onAction="#showAdditionalElements" />
+            <DatePicker fx:id="datePicker" layoutX="163.0" layoutY="207.0" visible="false" />
+            <Label fx:id="dateLabel" layoutX="75.0" layoutY="211.0" prefHeight="17.0" prefWidth="45.0" text="Till?:" visible="false" />
+            <Spinner fx:id="hourSpinner" editable="true" layoutX="163.0" layoutY="167.0" prefHeight="25.0" prefWidth="174.0" visible="false" />
+            <Label fx:id="hourLabel" layoutX="75.0" layoutY="171.0" text="Hours:" visible="false" />
+         </children>
+      </AnchorPane>
+   </content>
+</DialogPane>
