@@ -2,6 +2,7 @@
 
 <?import javafx.scene.chart.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
@@ -92,11 +93,24 @@
                                           <Label fx:id="currentTimeLabel" alignment="CENTER" layoutX="444.0" layoutY="41.0" prefHeight="17.0" prefWidth="80.0" text="None" />
                                           <Label alignment="CENTER" layoutX="336.0" layoutY="19.0" prefHeight="17.0" prefWidth="80.0" text="Current task:" />
                                           <Label fx:id="currentTaskLabel" alignment="CENTER" layoutX="336.0" layoutY="41.0" prefHeight="17.0" prefWidth="80.0" text="None" />
-                                          <TableView layoutX="23.0" layoutY="70.0" prefHeight="214.0" prefWidth="515.0">
+                                          <TableView fx:id="todayTableView" layoutX="23.0" layoutY="70.0" prefHeight="214.0" prefWidth="515.0">
                                             <columns>
-                                              <TableColumn prefWidth="237.0" text="Task" />
-                                              <TableColumn prefWidth="89.0" text="Today [m]" />
-                                                <TableColumn prefWidth="94.0" text="Goal [%]" />
+                                              <TableColumn prefWidth="237.0" style="-fx-alignment: CENTER;" text="Task">
+                                                  <cellValueFactory>
+                                                      <PropertyValueFactory property="taskName" />
+                                                  </cellValueFactory>
+                                              </TableColumn>
+                                              <TableColumn prefWidth="89.0" style="-fx-alignment: CENTER;" text="Today [m]">
+                                                  <cellValueFactory>
+                                                      <PropertyValueFactory property="taskDurationInString" />
+                                                  </cellValueFactory>
+                                              </TableColumn>
+                                                <TableColumn prefWidth="94.0" style="-fx-alignment: CENTER;" text="Goal [%]">
+                                                    <cellValueFactory>
+                                                        <PropertyValueFactory property="goalDoneToday" />
+                                                    </cellValueFactory>
+                                                </TableColumn>
+
                                                 <TableColumn prefWidth="94.0" text="Time left [m]" />
                                             </columns>
                                           </TableView>

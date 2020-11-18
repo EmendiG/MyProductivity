@@ -5,11 +5,15 @@ import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class Tasks {
     private SimpleIntegerProperty taskID;
@@ -19,6 +23,8 @@ public class Tasks {
     private SimpleLongProperty goalDuration;
     private SimpleStringProperty goalChoice;
     private SimpleLongProperty goalTillDate;
+    private String taskDurationInString;
+    private String goalDoneToday;
 
     public Tasks() {
         this.taskID = new SimpleIntegerProperty();
@@ -28,6 +34,8 @@ public class Tasks {
         this.goalDuration = new SimpleLongProperty();
         this.goalChoice = new SimpleStringProperty();
         this.goalTillDate = new SimpleLongProperty();
+        this.taskDurationInString = getTaskDurationInString();
+        this.goalDoneToday = getGoalDoneToday();
     }
 
     public int getTaskID() {
@@ -86,9 +94,20 @@ public class Tasks {
         this.goalTillDate.set(goalTillDate);
     }
 
+    public String getTaskDurationInString() {
+        return this.taskDurationInString;
+    }
+
+    public void setTaskDurationInString(Long longTaskDuration) {
+        this.taskDurationInString = String.format("%02d:%02d",
+                TimeUnit.MILLISECONDS.toHours(longTaskDuration),
+                TimeUnit.MILLISECONDS.toMinutes(longTaskDuration) -
+                        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(longTaskDuration)));
+    }
+
     @Override
     public String toString() {
-        return ""+ taskName.get();
+        return ""+ taskName.get() + " " + taskDurationInString ; //         return ""+ taskName.get() ; //
     }
 
     public static Set<Tasks> getUniqueTasksByTaskID(List<Tasks> tasks) {
@@ -101,5 +120,30 @@ public class Tasks {
             }
         }
         return tasksSet;
+    }
+
+    public String getGoalDoneToday() {
+        return this.goalDoneToday;
+    }
+
+    public void setGoalDoneToday() {
+        if ( !( this.goalChoice.get().equals(NewTasks.newTaskChoice.NONE.chosenTaskGoal) ) ) {
+
+            if (        this.goalChoice.get().equals(NewTasks.newTaskChoice.DAILY.chosenTaskGoal) ) {
+                this.goalDoneToday = String.valueOf( Math.round((double) this.taskDuration.get() / this.goalDuration.get() * 100D) ) ;
+
+            } else if ( this.goalChoice.get().equals(NewTasks.newTaskChoice.WEEKLY.chosenTaskGoal) ) {
+                this.goalDoneToday = String.valueOf( Math.round((double) this.taskDuration.get() / ( this.goalDuration.get() / 7D ) * 100D) );
+
+            } else if ( this.goalChoice.get().equals(NewTasks.newTaskChoice.MONTHLY.chosenTaskGoal) ) {
+                this.goalDoneToday = String.valueOf( Math.round((double) this.taskDuration.get() / ( this.goalDuration.get() / 31D ) * 100D) );
+
+            } else {
+                this.goalDoneToday = String.valueOf( Math.round((double) this.taskDuration.get() / ( this.goalDuration.get() / 365D ) * 100D) );
+            }
+
+        } else {
+            this.goalDoneToday = "-";
+        }
     }
 }

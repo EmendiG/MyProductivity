@@ -7,6 +7,12 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalTime;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 public class Main extends Application {
     @Override
@@ -15,7 +21,7 @@ public class Main extends Application {
         Parent root = loader.load();
 
         primaryStage.setTitle("MyProductivity");
-        primaryStage.setScene(new Scene(root, 850, 600));
+        primaryStage.setScene(new Scene(root, 850, 680));
         primaryStage.show();
     }
 
@@ -44,10 +50,12 @@ public class Main extends Application {
             PostgreSQLJDBC.getInstance().deleteTasksWithoutEndTime();
             PostgreSQLJDBC.getInstance().close();
 
+
         } catch (SQLException e) {
             System.err.println( e.getClass().getName()+": "+ e.getMessage() );
             System.exit(0);
         }
+
         launch(args);
     }
 }

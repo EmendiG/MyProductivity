@@ -6,6 +6,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.Date;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -205,20 +206,26 @@ public class PostgreSQLJDBC {
                 if (  rs.getTimestamp(COLUMN_PICKED_DATE) != null )
                     task.setGoalTillDate(rs.getTimestamp(COLUMN_PICKED_DATE).getTime());
 
-                if (rs.getTimestamp(COLUMN_END_TIME) != null && rs.getTimestamp(COLUMN_START_TIME) != null)
+                if (rs.getTimestamp(COLUMN_END_TIME) != null && rs.getTimestamp(COLUMN_START_TIME) != null) {
                     task.setTaskDuration(rs.getTimestamp(COLUMN_END_TIME).getTime() - rs.getTimestamp(COLUMN_START_TIME).getTime());
-                else
+                }
+                else {
                     task.setTaskDuration(0);
+                }
                 tasks.add(task);
             }
             Set<Tasks> tasksSet = Tasks.getUniqueTasksByTaskID(tasks);
             Map<Integer, Long> mappedTasks = tasks.stream()
                     .collect(Collectors.groupingBy(Tasks::getTaskID, Collectors.summingLong(Tasks::getTaskDuration)));
+
+            // set collected task duration from a period and reassign it as a time string
             tasksSet.forEach(x -> x.setTaskDuration(mappedTasks.get(x.getTaskID())));
+            tasksSet.forEach(x -> x.setTaskDurationInString(x.getTaskDuration()));
+            tasksSet.forEach(Tasks::setGoalDoneToday);
+
+            tasksSet.forEach(x -> System.out.println( x.getTaskName() + " " + x.getGoalChoice() + " " + x.getTaskDuration() + " vs " + x.getGoalDuration()));
+
             List<Tasks> sortedTasks = new ArrayList<>(tasksSet);
-
-//            sortedTasks.forEach(x -> System.out.println(x.getTaskID() + " " + x.getTaskName() + " " + x.getTaskDuration() + " " + x.getGoalChoice() +  " " + x.getGoalTillDate() + " " + x.getGoalDuration() ));
-
             sortedTasks.sort((x,y) -> x.getTaskDuration() > y.getTaskDuration() ? -1 : 1);
             return sortedTasks;
 
@@ -319,7 +326,21 @@ public class PostgreSQLJDBC {
         }
     }
 
+    public List<Tasks> getTodaysTasks() {
+        Calendar calEnd = new GregorianCalendar();
+        calEnd.setTime(new Date());
+        calEnd.set(Calendar.DAY_OF_YEAR, calEnd.get(Calendar.DAY_OF_YEAR));
+        calEnd.set(Calendar.HOUR_OF_DAY, 0);
+        calEnd.set(Calendar.MINUTE, 0);
+        calEnd.set(Calendar.SECOND, 0);
+        calEnd.set(Calendar.MILLISECOND, 0);
 
+        return PostgreSQLJDBC.getInstance()
+                .getSortedTaskByLengthInTimeRange(0,
+                        new Timestamp(calEnd.getTimeInMillis()),
+                        new Timestamp(System.currentTimeMillis())
+                );
+    }
 
 }
 

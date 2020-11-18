@@ -1,19 +1,10 @@
 package planner;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
-import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.time.LocalTime;
-import java.time.ZoneId;
-import java.util.Calendar;
-import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 

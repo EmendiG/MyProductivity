@@ -1,6 +1,7 @@
 package planner;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 
 public class NewTasks {
     private String newTaskName;
@@ -9,6 +10,21 @@ public class NewTasks {
     private LocalDate pickedDate;
 
     public NewTasks() {
+    }
+
+    public enum newTaskChoice {
+        NONE("None"),
+        DAILY("Daily"),
+        WEEKLY("Weekly"),
+        MONTHLY("Monthly"),
+        TILL_DATE("Till date");
+
+        String chosenTaskGoal;
+        String[] allChoices;
+
+        private newTaskChoice(String choice) {
+            chosenTaskGoal = choice;
+        }
     }
 
     public NewTasks(String newTaskName, String goalChoice, Double goalHours, LocalDate pickedDate) {

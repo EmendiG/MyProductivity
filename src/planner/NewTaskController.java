@@ -28,10 +28,17 @@ public class NewTaskController {
 
     @FXML
     public void initialize() {
-        String st[] = { "None", "Daily", "Weekly", "Monthly", "Till date" };
+
+        String st[] = { NewTasks.newTaskChoice.NONE.chosenTaskGoal,
+                        NewTasks.newTaskChoice.DAILY.chosenTaskGoal,
+                        NewTasks.newTaskChoice.WEEKLY.chosenTaskGoal,
+                        NewTasks.newTaskChoice.MONTHLY.chosenTaskGoal,
+                        NewTasks.newTaskChoice.TILL_DATE.chosenTaskGoal
+        };
+
         try {
             goalChoiceBox.setItems(FXCollections.observableArrayList(st));
-            goalChoiceBox.setValue("None");
+            goalChoiceBox.setValue(NewTasks.newTaskChoice.NONE.chosenTaskGoal);
             SpinnerValueFactory<Double> spinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0, 9999D, 0, 0.5);
             hourSpinner.setValueFactory(spinnerValueFactory);
         } catch (Exception e) {
@@ -41,7 +48,7 @@ public class NewTaskController {
 
     public void showAdditionalElements() {
         boolean visible;
-        if (goalChoiceBox.getValue() != "None") {
+        if (goalChoiceBox.getValue() != NewTasks.newTaskChoice.NONE.chosenTaskGoal) {
             visible = true;
         } else {
             visible = false;
@@ -61,9 +68,9 @@ public class NewTaskController {
         Double goalHours = hourSpinner.getValue();
         LocalDate pickedDate = datePicker.getValue();
 
-        if ( (!goalChoice.equals("None") && (goalHours == null || goalHours == 0 )) ||
-             (goalChoice.equals("Till date") && pickedDate == null )                ||
-             (goalChoice.equals("None") && nameTextField.getText().isEmpty() )      ||
+        if ( (!goalChoice.equals(NewTasks.newTaskChoice.NONE.chosenTaskGoal) && (goalHours == null || goalHours == 0 )) ||
+             (goalChoice.equals(NewTasks.newTaskChoice.TILL_DATE.chosenTaskGoal) && pickedDate == null )                ||
+             (goalChoice.equals(NewTasks.newTaskChoice.NONE.chosenTaskGoal) && nameTextField.getText().isEmpty() )      ||
              (nameTextField.getText().isEmpty()) ) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error Dialog");
@@ -72,7 +79,7 @@ public class NewTaskController {
                 alert.setContentText("Task name cannot be empty");
             else if (goalHours == null || goalHours == 0 )
                 alert.setContentText("Hours set cannot be empty");
-            else if (goalChoice.equals("Till date"))
+            else if (goalChoice.equals(NewTasks.newTaskChoice.TILL_DATE.chosenTaskGoal))
                 alert.setContentText("Pick a date!");
             alert.showAndWait();
             return new NewTasks();

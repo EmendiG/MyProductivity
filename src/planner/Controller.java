@@ -3,8 +3,7 @@ package planner;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.collections.transformation.SortedList;
-import javafx.concurrent.Task;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
@@ -15,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
+import javafx.beans.binding.Bindings;
 
 
 public class Controller {
@@ -38,29 +38,16 @@ public class Controller {
     @FXML
     private VBox mainWindow;
 
+    @FXML
+    private TableView<Tasks> todayTableView;
+
     private TaskTimer taskTimer = new TaskTimer();
     private Tasks currentlyAssignedTask;
-    
+
+
     public void initialize() {
-        ObservableList<Tasks> observablePlantList = FXCollections.observableArrayList(
-                    PostgreSQLJDBC.getInstance()
-                        .getSortedTaskByLengthInTimeRange(  0,
-                                                            new Timestamp(0L),
-                                                            new Timestamp(System.currentTimeMillis())
-                    ));
-
-        FilteredList<Tasks> filteredTasks = new FilteredList<>(observablePlantList);
-        tasksTable.setItems(filteredTasks);
-        filteredTasks.predicateProperty().bind(javafx.beans.binding.Bindings.createObjectBinding( () -> {
-            String text = filterTasksTextField.getText();
-            if ( text == null || text.isEmpty() )
-                return null;
-            else {
-                final String lowerCase = text.toLowerCase();
-                return (tasks) -> tasks.getTaskName().toLowerCase().contains(lowerCase);
-            }
-        }, filterTasksTextField.textProperty() ));
-
+        updateListView(0, null);
+        updateDayTableView();
     }
 
     public void startCurrentTask() {
@@ -96,6 +83,10 @@ public class Controller {
             stopCurrentTimeElapsed();
             startButton.setDisable(false);
             tasksTable.setStyle("-fx-selection-bar: lightblue; -fx-selection-bar-non-focused: lightblue;");
+
+            // updating tables
+            updateDayTableView();
+            updateListView(tasksTable.getSelectionModel().getSelectedIndices().get(0), currentlyAssignedTask.getTaskName());
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -164,12 +155,12 @@ public class Controller {
                     if (buttonType.isPresent() && buttonType.get() == ButtonType.OK) {
                         PostgreSQLJDBC.getInstance().insertNewGoal(newTask);
                         successfullyAddedTaskAlert.show();
-                        initialize();
+                        updateListView(tasksTable.getItems().size(), newTask.getNewTaskName());
                     }
                 } else if ( ! theSameTask) {
                     PostgreSQLJDBC.getInstance().insertNewGoal(newTask);
                     successfullyAddedTaskAlert.show();
-                    initialize();
+                    updateListView(tasksTable.getItems().size(), newTask.getNewTaskName());
                 } else {
                     alert = new Alert(Alert.AlertType.WARNING);
                     alert.setTitle("Task already exists");
@@ -179,5 +170,54 @@ public class Controller {
                 }
             }
         }
+    }
+
+    public void updateListView(int taskSelected, String currentTaskAssigned) {
+        ObservableList<Tasks> observablePlantList = FXCollections.observableArrayList(
+                PostgreSQLJDBC.getInstance()
+                        .getSortedTaskByLengthInTimeRange(  0,
+                                new Timestamp(0L),
+                                new Timestamp(System.currentTimeMillis() + 10000)
+                        )
+        );
+
+        FilteredList<Tasks> filteredTasks = new FilteredList<>(observablePlantList);
+        tasksTable.setItems(filteredTasks);
+
+        filteredTasks.predicateProperty().bind(Bindings.createObjectBinding( () -> {
+            String text = filterTasksTextField.getText();
+            if ( text == null || text.isEmpty() )
+                return null;
+            else {
+                final String lowerCase = text.toLowerCase();
+                return (tasks) -> tasks.getTaskName().toLowerCase().contains(lowerCase);
+            }
+        }, filterTasksTextField.textProperty() ));
+
+        tasksTable.getSelectionModel().select(taskSelected);
+        int positionInt = 0;
+        int positionLeft = tasksTable.getItems().size() -1;
+        while ( positionLeft >=0 ) {
+
+            if (currentTaskAssigned != null) {
+                if (tasksTable.getSelectionModel().getSelectedItem().getTaskName().equals(currentTaskAssigned)) {
+                    tasksTable.getSelectionModel().select(taskSelected - positionInt);
+                    break;
+                } else {
+                    positionInt = positionInt +1;
+                    positionLeft = positionLeft -1;
+                    tasksTable.getSelectionModel().select(taskSelected-positionInt);
+                }
+            } else
+                break;
+        }
+    }
+
+    public void updateDayTableView() {
+        ObservableList<Tasks> observablePlantList = FXCollections.observableArrayList(
+                PostgreSQLJDBC.getInstance()
+                        .getTodaysTasks()
+        );
+        todayTableView.setItems(observablePlantList);
     }
 }
