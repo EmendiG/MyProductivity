@@ -173,7 +173,7 @@ public class Controller {
     }
 
     public void updateListView(int taskSelected, String currentTaskAssigned) {
-        ObservableList<Tasks> observablePlantList = FXCollections.observableArrayList(
+        ObservableList<Tasks> observableTaskList = FXCollections.observableArrayList(
                 PostgreSQLJDBC.getInstance()
                         .getSortedTaskByLengthInTimeRange(  0,
                                 new Timestamp(0L),
@@ -181,7 +181,7 @@ public class Controller {
                         )
         );
 
-        FilteredList<Tasks> filteredTasks = new FilteredList<>(observablePlantList);
+        FilteredList<Tasks> filteredTasks = new FilteredList<>(observableTaskList);
         tasksTable.setItems(filteredTasks);
 
         filteredTasks.predicateProperty().bind(Bindings.createObjectBinding( () -> {
@@ -214,10 +214,16 @@ public class Controller {
     }
 
     public void updateDayTableView() {
-        ObservableList<Tasks> observablePlantList = FXCollections.observableArrayList(
+
+        ObservableList<Tasks> observableTaskList = FXCollections.observableArrayList(
                 PostgreSQLJDBC.getInstance()
-                        .getTodaysTasks()
+                        .getSortedTaskByLengthInTimeRange(  0,
+                                new Timestamp(0L),
+                                new Timestamp(System.currentTimeMillis() + 10000)
+                        )
         );
-        todayTableView.setItems(observablePlantList);
+        observableTaskList.stream().forEach(x -> x.setGoalDoneToday());
+
+        todayTableView.setItems(observableTaskList);
     }
 }
