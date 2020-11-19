@@ -20,7 +20,7 @@ import javafx.beans.binding.Bindings;
 public class Controller {
 
     @FXML
-    private ListView<Tasks> tasksTable;
+    private ListView<TodayTasks> tasksTable;
 
     @FXML
     private Button startButton;
@@ -39,9 +39,9 @@ public class Controller {
     private VBox mainWindow;
 
     @FXML
-    private TableView<Tasks> todayTableView;
+    private TableView<TodayTasks> todayTableView;
 
-    private TaskTimer taskTimer = new TaskTimer();
+    private final TaskTimer taskTimer = new TaskTimer();
     private Tasks currentlyAssignedTask;
 
 
@@ -83,10 +83,11 @@ public class Controller {
             stopCurrentTimeElapsed();
             startButton.setDisable(false);
             tasksTable.setStyle("-fx-selection-bar: lightblue; -fx-selection-bar-non-focused: lightblue;");
-
             // updating tables
-            updateDayTableView();
+
             updateListView(tasksTable.getSelectionModel().getSelectedIndices().get(0), currentlyAssignedTask.getTaskName());
+            updateDayTableView();
+
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -172,8 +173,10 @@ public class Controller {
         }
     }
 
+    private  ObservableList<TodayTasks> observableTaskList;
+
     public void updateListView(int taskSelected, String currentTaskAssigned) {
-        ObservableList<Tasks> observableTaskList = FXCollections.observableArrayList(
+        observableTaskList = FXCollections.observableArrayList(
                 PostgreSQLJDBC.getInstance()
                         .getSortedTaskByLengthInTimeRange(  0,
                                 new Timestamp(0L),
@@ -181,7 +184,7 @@ public class Controller {
                         )
         );
 
-        FilteredList<Tasks> filteredTasks = new FilteredList<>(observableTaskList);
+        FilteredList<TodayTasks> filteredTasks = new FilteredList<>(observableTaskList);
         tasksTable.setItems(filteredTasks);
 
         filteredTasks.predicateProperty().bind(Bindings.createObjectBinding( () -> {
@@ -214,16 +217,12 @@ public class Controller {
     }
 
     public void updateDayTableView() {
+        observableTaskList.forEach(TodayTasks::setGoalDoneToday);
+        // set the table not selectable
+        todayTableView.setMouseTransparent(true);
+        todayTableView.setFocusTraversable(false);
 
-        ObservableList<Tasks> observableTaskList = FXCollections.observableArrayList(
-                PostgreSQLJDBC.getInstance()
-                        .getSortedTaskByLengthInTimeRange(  0,
-                                new Timestamp(0L),
-                                new Timestamp(System.currentTimeMillis() + 10000)
-                        )
-        );
-        observableTaskList.stream().forEach(x -> x.setGoalDoneToday());
-
+        // TODO: show only tasks that were triggered 'today' => Predicate(if taskDoneToday > 0);
         todayTableView.setItems(observableTaskList);
     }
 }

@@ -85,7 +85,6 @@ public class NewTaskController {
             return new NewTasks();
 
         } else {
-//            System.out.println(newTaskName + " " + goalChoice + " " + goalHours + " " + pickedDate);
             return new  NewTasks(newTaskName, goalChoice, goalHours, pickedDate);
         }
     }

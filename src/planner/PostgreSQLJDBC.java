@@ -119,6 +119,7 @@ public class PostgreSQLJDBC {
     private Connection conn;
     private Statement stmt;
 
+    // not thread safe
     private static PostgreSQLJDBC instance = new PostgreSQLJDBC();
     private PostgreSQLJDBC(){}
     public static PostgreSQLJDBC getInstance() {
@@ -134,8 +135,8 @@ public class PostgreSQLJDBC {
             insertNewTaskname = conn.prepareStatement(INSERT_TASKNAME, Statement.RETURN_GENERATED_KEYS);
             insertGoal = conn.prepareStatement(INSERT_GOAL);
             updateLastNullInTasks = conn.prepareStatement(UPDATE_LAST_NULL_FROM_TABLE_TASKS);
-
             return true;
+
         } catch (SQLException e) {
             System.out.println("Couldn't connect to database: " + e.getMessage());
             return false;
@@ -171,8 +172,8 @@ public class PostgreSQLJDBC {
         conn.close();
     }
 
-    public List<Tasks> getSortedTaskByLengthInTimeRange(int taskID, Timestamp startTime, Timestamp endTime) {
-        /*
+    public List<TodayTasks> getSortedTaskByLengthInTimeRange(int taskID, Timestamp startTime, Timestamp endTime) {
+        /**
                 taskID = 0 to query ALL TASKS !!!
         */
         StringBuilder sb = new StringBuilder(QUERY_TASK_DURATION_IN_TIME_RANGE);
@@ -187,20 +188,13 @@ public class PostgreSQLJDBC {
         try (Connection conn = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASS);
              Statement stmt = conn.createStatement()) {
 
-            ResultSet rs = stmt.executeQuery(sb.toString());
-            List<Tasks> tasks = new ArrayList<>();
-
             // calendar to check task duration performed today / in the past
-            Calendar calEnd = new GregorianCalendar();
-            calEnd.setTime(new Date());
-            calEnd.set(Calendar.DAY_OF_YEAR, calEnd.get(Calendar.DAY_OF_YEAR));
-            calEnd.set(Calendar.HOUR_OF_DAY, 0);
-            calEnd.set(Calendar.MINUTE, 0);
-            calEnd.set(Calendar.SECOND, 0);
-            calEnd.set(Calendar.MILLISECOND, 0);
+            Calendar calEnd = new CalendarDate(0).getOffsettedCalendar();
+            List<TodayTasks> tasks = new ArrayList<>();
+            ResultSet rs = stmt.executeQuery(sb.toString());
 
             while (rs.next()) {
-                Tasks task = new Tasks();
+                TodayTasks task = new TodayTasks();
                 task.setTaskName(rs.getString(COLUMN_TASK_NAME));
                 task.setTaskID(rs.getInt(COLUMN_TASK_ID));
 
@@ -213,7 +207,6 @@ public class PostgreSQLJDBC {
 
                 if (rs.getTimestamp(COLUMN_END_TIME) != null && rs.getTimestamp(COLUMN_START_TIME) != null) {
                     task.setTaskDuration(rs.getTimestamp(COLUMN_END_TIME).getTime() - rs.getTimestamp(COLUMN_START_TIME).getTime());
-
                     // check if this task was performed today and for how long, AND how long this task was performed in the past
                     if (rs.getTimestamp(COLUMN_END_TIME).getTime() < calEnd.getTimeInMillis() ) {
                         task.setTaskDoneTillToday( rs.getTimestamp(COLUMN_END_TIME).getTime() - rs.getTimestamp(COLUMN_START_TIME).getTime() );
@@ -221,17 +214,17 @@ public class PostgreSQLJDBC {
                         task.setTaskDoneToday( rs.getTimestamp(COLUMN_END_TIME).getTime() - rs.getTimestamp(COLUMN_START_TIME).getTime() );
                     }
                 }
+
                 else {
                     task.setTaskDuration(0L);
                 }
+
                 tasks.add(task);
             }
 
-            Map<Integer, Tasks> mappedTasks =
-                    tasks.stream()
-                            .collect(Collectors.toMap(Tasks::getTaskID, Function.identity(), Tasks::merge));
-            List<Tasks> sortedTasks = new ArrayList<>(mappedTasks.values());
-
+            Map<Integer, TodayTasks> mappedTasks =
+                tasks.stream().collect(Collectors.toMap(TodayTasks::getTaskID, Function.identity(), TodayTasks::merge));
+            List<TodayTasks> sortedTasks = new ArrayList<>(mappedTasks.values());
             // set collected task duration from a period assign it as a time string
             sortedTasks.forEach(x -> x.setTaskDurationInString( x.getTaskDoneToday() ));
             sortedTasks.sort((x,y) -> x.getTaskDuration() > y.getTaskDuration() ? -1 : 1);
@@ -247,6 +240,7 @@ public class PostgreSQLJDBC {
     public List<String> getListedTasknames() {
         try (Connection conn = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASS);
              Statement stmt = conn.createStatement()) {
+
             ResultSet rs = stmt.executeQuery(QUERY_TASKNAMES);
             List<String> tasknames = new ArrayList<>();
             while (rs.next()) {
@@ -269,12 +263,12 @@ public class PostgreSQLJDBC {
             if (rs.next())
                 newTaskID = rs.getLong(1);
             return newTaskID;
+
         } catch (SQLException e) {
             System.out.println("New " + COLUMN_TASK_NAME + " insertion has failed: " + e.getMessage());
         }
         return newTaskID;
     }
-
 
     public void insertNewGoal(NewTasks newTask) {
         int taskID = (int) insertNewTaskname(newTask.getNewTaskName().trim());
@@ -282,7 +276,7 @@ public class PostgreSQLJDBC {
         try {
             insertGoal.setInt(1, taskID);
             insertGoal.setString(2, newTask.getGoalChoice());
-            // goalHours * 60 are always int, no rest is left
+            // goalHours (accuracy to 0.5) * 60 are always int, no rest is left:
             if (newTask.getGoalHours() != null && newTask.getGoalHours() != 0.0) {
                 insertGoal.setInt(3, (int) (newTask.getGoalHours() * 1000*60*60));
             }
@@ -333,23 +327,6 @@ public class PostgreSQLJDBC {
             System.out.println("Couldn't delete nulls from " + TABLE_TASKS + " table " + e.getMessage());
         }
     }
-
-//    public List<Tasks> getTodaysTasks(int taskID) {
-//        Calendar calEnd = new GregorianCalendar();
-//        calEnd.setTime(new Date());
-//        calEnd.set(Calendar.DAY_OF_YEAR, calEnd.get(Calendar.DAY_OF_YEAR));
-//        calEnd.set(Calendar.HOUR_OF_DAY, 0);
-//        calEnd.set(Calendar.MINUTE, 0);
-//        calEnd.set(Calendar.SECOND, 0);
-//        calEnd.set(Calendar.MILLISECOND, 0);
-//
-//        return PostgreSQLJDBC.getInstance()
-//                .getSortedTaskByLengthInTimeRange( taskID,
-//                                                    new Timestamp(calEnd.getTimeInMillis()),
-//                                                    new Timestamp(System.currentTimeMillis())
-//                );
-//    }
-
 
 }
 
