@@ -2,7 +2,6 @@ package planner;
 
 import java.sql.*;
 import java.util.*;
-import java.util.Date;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -24,7 +23,7 @@ public class PostgreSQLJDBC {
     public static final String TABLE_TASKGOALS = "TASKGOALS";
     public static final String COLUMN_GOAL_CHOICE = "GOAL_CHOICE";
     public static final String COLUMN_GOAL_HOURS = "GOAL_HOURS";
-    public static final String COLUMN_PICKED_DATE = "PICKED_DATE";
+    public static final String COLUMN_GOAL_DATE = "GOAL_DATE";
 
 
     public static final String CREATE_TABLE_TASKS =
@@ -44,7 +43,7 @@ public class PostgreSQLJDBC {
             " ("+COLUMN_TASK_ID +"  INT             PRIMARY KEY     NOT NULL, " +
             COLUMN_GOAL_CHOICE  +"  VARCHAR (20)                    NOT NULL, " +
             COLUMN_GOAL_HOURS   +"  INT                                     , " +
-            COLUMN_PICKED_DATE  +"  TIMESTAMP                                )";
+                    COLUMN_GOAL_DATE +"  TIMESTAMP                                )";
 
 
 
@@ -65,7 +64,7 @@ public class PostgreSQLJDBC {
                         TABLE_TASKNAMES +"."+   COLUMN_TASK_NAME    + ", "  +
                         TABLE_TASKGOALS +"."+   COLUMN_GOAL_CHOICE  + ", "  +
                         TABLE_TASKGOALS +"."+   COLUMN_GOAL_HOURS   + ", "  +
-                        TABLE_TASKGOALS +"."+   COLUMN_PICKED_DATE          +
+                        TABLE_TASKGOALS +"."+ COLUMN_GOAL_DATE +
             " FROM " + TABLE_TASKS +
 
             " FULL OUTER JOIN " + TABLE_TASKNAMES +
@@ -96,7 +95,7 @@ public class PostgreSQLJDBC {
 
     public static final String INSERT_GOAL =
             "INSERT INTO " + TABLE_TASKGOALS +
-                    "( " + COLUMN_TASK_ID + "," +  COLUMN_GOAL_CHOICE    + "," + COLUMN_GOAL_HOURS   + "," + COLUMN_PICKED_DATE + " )" +
+                    "( " + COLUMN_TASK_ID + "," +  COLUMN_GOAL_CHOICE    + "," + COLUMN_GOAL_HOURS   + "," + COLUMN_GOAL_DATE + " )" +
             " VALUES (                  ?    ,                      ?       ,                    ?      ,                     ?     )" ;
 
     public static final String DELETE_NULLS_FROM_TABLE_TASKS =
@@ -172,11 +171,16 @@ public class PostgreSQLJDBC {
         conn.close();
     }
 
-    public List<TodayTasks> getSortedTaskByLengthInTimeRange(int taskID, Timestamp startTime, Timestamp endTime) {
-        /**
-                taskID = 0 to query ALL TASKS !!!
-        */
+
+    /**
+     ::getSortedTaskByLengthInTimeRange::
+
+     taskID = 0 to query ALL TASKS !!!
+
+    */
+    public List<ThisWeekTasks> getSortedTaskByLengthInTimeRange(int taskID, Timestamp startTime, Timestamp endTime, int dayOffsett) {
         StringBuilder sb = new StringBuilder(QUERY_TASK_DURATION_IN_TIME_RANGE);
+        // taskIDs are starting from 1
         if (taskID == 0)
             sb.append(String.format(CONDITIONS_TIME_RANGE_WITH_NULL, startTime, endTime));
         else {
@@ -189,44 +193,37 @@ public class PostgreSQLJDBC {
              Statement stmt = conn.createStatement()) {
 
             // calendar to check task duration performed today / in the past
-            Calendar calEnd = new CalendarDate(0).getOffsettedCalendar();
-            List<TodayTasks> tasks = new ArrayList<>();
+            Calendar calEnd = new CalendarDate(dayOffsett).getOffsettedCalendar();
+            List<ThisWeekTasks> tasks = new ArrayList<>();
             ResultSet rs = stmt.executeQuery(sb.toString());
-
             while (rs.next()) {
-                TodayTasks task = new TodayTasks();
+                ThisWeekTasks task = new ThisWeekTasks();
                 task.setTaskName(rs.getString(COLUMN_TASK_NAME));
                 task.setTaskID(rs.getInt(COLUMN_TASK_ID));
-
                 task.setGoalChoice(rs.getString(COLUMN_GOAL_CHOICE));
                 if ( rs.getInt(COLUMN_GOAL_HOURS) != 0 )
                     task.setGoalDuration(rs.getInt(COLUMN_GOAL_HOURS));
-
-                if (  rs.getTimestamp(COLUMN_PICKED_DATE) != null )
-                    task.setGoalDate(rs.getTimestamp(COLUMN_PICKED_DATE).getTime());
-
-                if (rs.getTimestamp(COLUMN_END_TIME) != null && rs.getTimestamp(COLUMN_START_TIME) != null) {
+                if ( rs.getTimestamp(COLUMN_GOAL_DATE) != null )
+                    task.setGoalDate(rs.getTimestamp(COLUMN_GOAL_DATE).getTime() );
+                if ( rs.getTimestamp(COLUMN_END_TIME) != null && rs.getTimestamp(COLUMN_START_TIME) != null ) {
                     task.setTaskDuration(rs.getTimestamp(COLUMN_END_TIME).getTime() - rs.getTimestamp(COLUMN_START_TIME).getTime());
                     // check if this task was performed today and for how long, AND how long this task was performed in the past
-                    if (rs.getTimestamp(COLUMN_END_TIME).getTime() < calEnd.getTimeInMillis() ) {
-                        task.setTaskDoneTillToday( rs.getTimestamp(COLUMN_END_TIME).getTime() - rs.getTimestamp(COLUMN_START_TIME).getTime() );
-                    } else {
-                        task.setTaskDoneToday( rs.getTimestamp(COLUMN_END_TIME).getTime() - rs.getTimestamp(COLUMN_START_TIME).getTime() );
-                    }
+                    if ( rs.getTimestamp(COLUMN_END_TIME).getTime() < calEnd.getTimeInMillis() )
+                        task.setTaskDoneTillThisPeriod( rs.getTimestamp(COLUMN_END_TIME).getTime() - rs.getTimestamp(COLUMN_START_TIME).getTime() );
+                    else
+                        task.setTaskDoneThisPeriod( rs.getTimestamp(COLUMN_END_TIME).getTime() - rs.getTimestamp(COLUMN_START_TIME).getTime() );
                 }
-
-                else {
+                else
                     task.setTaskDuration(0L);
-                }
-
                 tasks.add(task);
             }
 
-            Map<Integer, TodayTasks> mappedTasks =
-                tasks.stream().collect(Collectors.toMap(TodayTasks::getTaskID, Function.identity(), TodayTasks::merge));
-            List<TodayTasks> sortedTasks = new ArrayList<>(mappedTasks.values());
+            Map<Integer, ThisWeekTasks> mappedTasks =
+                tasks.stream().collect(Collectors.toMap(ThisWeekTasks::getTaskID, Function.identity(), ThisWeekTasks::merge));
+            List<ThisWeekTasks> sortedTasks = new ArrayList<>(mappedTasks.values());
             // set collected task duration from a period assign it as a time string
-            sortedTasks.forEach(x -> x.setTaskDurationInString( x.getTaskDoneToday() ));
+            sortedTasks.forEach(x -> x.setTaskDurationInString( x.getTaskDoneThisPeriod() ));
+            // tasks firstly go to right ListView and taskDuration is the most important factor there
             sortedTasks.sort((x,y) -> x.getTaskDuration() > y.getTaskDuration() ? -1 : 1);
             return sortedTasks;
 
@@ -243,9 +240,8 @@ public class PostgreSQLJDBC {
 
             ResultSet rs = stmt.executeQuery(QUERY_TASKNAMES);
             List<String> tasknames = new ArrayList<>();
-            while (rs.next()) {
+            while (rs.next())
                 tasknames.add(rs.getString(COLUMN_TASK_NAME));
-            }
             return tasknames;
 
         } catch (SQLException e) {
@@ -277,9 +273,8 @@ public class PostgreSQLJDBC {
             insertGoal.setInt(1, taskID);
             insertGoal.setString(2, newTask.getGoalChoice());
             // goalHours (accuracy to 0.5) * 60 are always int, no rest is left:
-            if (newTask.getGoalHours() != null && newTask.getGoalHours() != 0.0) {
+            if (newTask.getGoalHours() != null && newTask.getGoalHours() != 0.0)
                 insertGoal.setInt(3, (int) (newTask.getGoalHours() * 1000*60*60));
-            }
             else
                 insertGoal.setNull(3, java.sql.Types.NULL);
 
@@ -287,6 +282,7 @@ public class PostgreSQLJDBC {
                 insertGoal.setTimestamp(4,  Timestamp.valueOf(newTask.getPickedDate().atStartOfDay()) );
             else
                 insertGoal.setNull(4, java.sql.Types.NULL);
+
             insertGoal.executeUpdate();
         } catch (SQLException e) {
             System.out.println("New goal insertion has failed: " + e.getMessage());

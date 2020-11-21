@@ -14,6 +14,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import javafx.beans.binding.Bindings;
 
 
@@ -40,6 +42,9 @@ public class Controller {
 
     @FXML
     private TableView<TodayTasks> todayTableView;
+    @FXML
+    private TableView<ThisWeekTasks> weekTableView;
+
 
     private final TaskTimer taskTimer = new TaskTimer();
     private Tasks currentlyAssignedTask;
@@ -47,7 +52,8 @@ public class Controller {
 
     public void initialize() {
         updateListView(0, null);
-        updateDayTableView();
+        updateTodayTableView();
+        updateWeeklyTableView();
     }
 
     public void startCurrentTask() {
@@ -86,7 +92,7 @@ public class Controller {
             // updating tables
 
             updateListView(tasksTable.getSelectionModel().getSelectedIndices().get(0), currentlyAssignedTask.getTaskName());
-            updateDayTableView();
+            updateTodayTableView();
 
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -173,18 +179,19 @@ public class Controller {
         }
     }
 
-    private  ObservableList<TodayTasks> observableTaskList;
+    private  ObservableList<TodayTasks> observableTodayTaskList;
 
     public void updateListView(int taskSelected, String currentTaskAssigned) {
-        observableTaskList = FXCollections.observableArrayList(
+        observableTodayTaskList = FXCollections.observableArrayList(
                 PostgreSQLJDBC.getInstance()
                         .getSortedTaskByLengthInTimeRange(  0,
                                 new Timestamp(0L),
-                                new Timestamp(System.currentTimeMillis() + 10000)
+                                new Timestamp(System.currentTimeMillis() + 10000),
+                                0
                         )
         );
 
-        FilteredList<TodayTasks> filteredTasks = new FilteredList<>(observableTaskList);
+        FilteredList<TodayTasks> filteredTasks = new FilteredList<>(observableTodayTaskList);
         tasksTable.setItems(filteredTasks);
 
         filteredTasks.predicateProperty().bind(Bindings.createObjectBinding( () -> {
@@ -216,13 +223,44 @@ public class Controller {
         }
     }
 
-    public void updateDayTableView() {
-        observableTaskList.forEach(TodayTasks::setGoalDoneToday);
+    public void updateTodayTableView() {
+
+        ObservableList<TodayTasks> filteredObservableTaskList = FXCollections.observableArrayList( observableTodayTaskList
+                .stream()
+                .peek(TodayTasks::setGoalDoneToday)
+                .filter(x -> (x.getTaskDoneThisPeriod() > 1))
+                .sorted((x,y) -> x.getTaskDoneThisPeriod() > y.getTaskDoneThisPeriod() ? -1 : 1)
+                .collect(Collectors.toList())
+        );
+
         // set the table not selectable
         todayTableView.setMouseTransparent(true);
-        todayTableView.setFocusTraversable(false);
+//        todayTableView.setFocusTraversable(false);
+        todayTableView.setItems(filteredObservableTaskList);
+    }
 
-        // TODO: show only tasks that were triggered 'today' => Predicate(if taskDoneToday > 0);
-        todayTableView.setItems(observableTaskList);
+    public void updateWeeklyTableView() {
+
+        ObservableList<ThisWeekTasks> observableWeekTaskList = FXCollections.observableArrayList(
+                PostgreSQLJDBC.getInstance()
+                        .getSortedTaskByLengthInTimeRange(  0,
+                                new Timestamp(0L),
+                                new Timestamp(System.currentTimeMillis() + 10000),
+                                6
+                        )
+        );
+
+        ObservableList<ThisWeekTasks> filteredObservableTaskList = FXCollections.observableArrayList( observableWeekTaskList
+                .stream()
+                .peek(ThisWeekTasks::setGoalDoneThisWeek)
+                .filter(x -> (x.getTaskDoneThisPeriod() > 1))
+                .sorted((x,y) -> x.getTaskDoneThisPeriod() > y.getTaskDoneThisPeriod() ? -1 : 1)
+                .collect(Collectors.toList())
+        );
+
+        // set the table not selectable
+        weekTableView.setMouseTransparent(true);
+//        todayTableView.setFocusTraversable(false);
+        weekTableView.setItems(filteredObservableTaskList);
     }
 }

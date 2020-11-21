@@ -1,25 +1,24 @@
 package planner;
 
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.concurrent.TimeUnit;
 
 public class TodayTasks extends Tasks {
 
-    private final SimpleLongProperty taskDuration;
-    private final SimpleLongProperty goalDuration;
-    private final SimpleStringProperty goalChoice;
-    private final SimpleLongProperty goalDate;
-    private final SimpleStringProperty taskDurationInString;
-    private String goalDoneToday;
-    private String goalLeftToday;
-    private final SimpleLongProperty taskDoneTillToday;
-    private final SimpleLongProperty taskDoneToday;
+    protected final SimpleLongProperty taskDuration;
+    protected final SimpleLongProperty goalDuration;
+    protected final SimpleStringProperty goalChoice;
+    protected final SimpleLongProperty goalDate;
+    protected final SimpleStringProperty taskDurationInString;
+    protected String goalDoneToday;
+    protected String goalLeftToday;
+    protected final SimpleLongProperty taskDoneTillThisPeriod;
+    protected final SimpleLongProperty taskDoneThisPeriod;
+
+
 
     public TodayTasks() {
         super();
@@ -34,8 +33,8 @@ public class TodayTasks extends Tasks {
         // taskDuration == taskDoneTillToday + taskDoneToday
         this.taskDuration = new SimpleLongProperty();
         this.taskDurationInString =  new SimpleStringProperty();
-        this.taskDoneTillToday = new SimpleLongProperty();
-        this.taskDoneToday = new SimpleLongProperty();
+        this.taskDoneTillThisPeriod = new SimpleLongProperty();
+        this.taskDoneThisPeriod = new SimpleLongProperty();
     }
 
     public long getTaskDuration() {
@@ -90,72 +89,62 @@ public class TodayTasks extends Tasks {
         return this.goalLeftToday;
     }
 
-    public long getTaskDoneTillToday() {
-        return this.taskDoneTillToday.get();
+    public long getTaskDoneTillThisPeriod() {
+        return this.taskDoneTillThisPeriod.get();
     }
 
-    public void setTaskDoneTillToday(long taskDoneTillToday) {
-        this.taskDoneTillToday.set(taskDoneTillToday);
+    public void setTaskDoneTillThisPeriod(long taskDoneTillThisPeriod) {
+        this.taskDoneTillThisPeriod.set(taskDoneTillThisPeriod);
     }
 
-    public long getTaskDoneToday() {
-        return this.taskDoneToday.get();
+    public long getTaskDoneThisPeriod() {
+        return this.taskDoneThisPeriod.get();
     }
 
-    public void setTaskDoneToday(long taskDoneToday) {
-        this.taskDoneToday.set(taskDoneToday);
+    public void setTaskDoneThisPeriod(long taskDoneThisPeriod) {
+        this.taskDoneThisPeriod.set(taskDoneThisPeriod);
     }
 
     public void setGoalDoneToday() {
         if ( !( this.goalChoice.get().equals(NewTasks.newTaskChoice.NONE.chosenTaskGoal) ) ) {
 
             if (        this.goalChoice.get().equals(NewTasks.newTaskChoice.DAILY.chosenTaskGoal) ) {
-                this.goalDoneToday = String.valueOf( Math.round(( (double) this.taskDoneToday.get() / this.goalDuration.get() ) * 100D) ) ;
-                setGoalLeftToday(this.goalDuration.get() - this.taskDoneToday.get());
+                this.goalDoneToday = ( Math.round(( (double) this.taskDoneThisPeriod.get() / this.goalDuration.get() ) * 100D) ) + "%" ;
+                setGoalLeftToday(this.goalDuration.get() - this.taskDoneThisPeriod.get());
 
             } else if ( this.goalChoice.get().equals(NewTasks.newTaskChoice.WEEKLY.chosenTaskGoal) ) {
-                this.goalDoneToday = String.valueOf( Math.round((double) this.taskDoneToday.get() / ((double) this.goalDuration.get() / 7D) * 100D) );
-                setGoalLeftToday( this.goalDuration.get() / 7 - this.taskDoneToday.get());
+                this.goalDoneToday = ( Math.round((double) this.taskDoneThisPeriod.get() / ((double) this.goalDuration.get() / 7D) * 100D) ) + "%";
+                setGoalLeftToday( this.goalDuration.get() / 7 - this.taskDoneThisPeriod.get());
 
             } else if ( this.goalChoice.get().equals(NewTasks.newTaskChoice.MONTHLY.chosenTaskGoal) ) {
-                this.goalDoneToday = String.valueOf( Math.round((double) this.taskDoneToday.get() / ( this.goalDuration.get() / 31D ) * 100D) );
-                setGoalLeftToday(this.goalDuration.get() / 31 - this.taskDoneToday.get());
+                this.goalDoneToday = ( Math.round((double) this.taskDoneThisPeriod.get() / ( this.goalDuration.get() / 31D ) * 100D) ) + "%";
+                setGoalLeftToday(this.goalDuration.get() / 31 - this.taskDoneThisPeriod.get());
 
             } else {
 
-                Calendar calEnd = new GregorianCalendar();
-                calEnd.setTime(new Date());
-                calEnd.set(Calendar.DAY_OF_YEAR, calEnd.get(Calendar.DAY_OF_YEAR));
-                calEnd.set(Calendar.HOUR_OF_DAY, 0);
-                calEnd.set(Calendar.MINUTE, 0);
-                calEnd.set(Calendar.SECOND, 0);
-                calEnd.set(Calendar.MILLISECOND, 0);
+                Calendar calEnd = new CalendarDate(0).getOffsettedCalendar();
 
-                long leftHoursTillToday = this.goalDuration.get() - this.taskDoneTillToday.get();
+                long leftHoursTillToday = this.goalDuration.get() - this.taskDoneTillThisPeriod.get();
                 long leftDays = (this.goalDate.get() - calEnd.getTimeInMillis() ) / 86400000L;
-                setGoalLeftToday((leftHoursTillToday)/leftDays - taskDoneToday.get());
+                setGoalLeftToday((leftHoursTillToday)/leftDays - taskDoneThisPeriod.get());
 
-                this.goalDoneToday = String.valueOf( this.taskDoneToday.get()*100/(leftHoursTillToday/leftDays) );
+                this.goalDoneToday = ( this.taskDoneThisPeriod.get()*100/(leftHoursTillToday/leftDays) ) + "%";
             }
 
         } else {
             this.goalDoneToday = "-";
+            setGoalLeftToday(0);
         }
     }
 
     public void setGoalLeftToday(long goalLeftToday) {
-        this.goalLeftToday = String.format("%02d:%02d",
-                TimeUnit.MILLISECONDS.toHours(goalLeftToday),
-                TimeUnit.MILLISECONDS.toMinutes(goalLeftToday) -
-                        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(goalLeftToday)));
-    }
-
-
-    public static TodayTasks merge(TodayTasks first, TodayTasks second) {
-        first.setTaskDuration(first.getTaskDuration() + second.getTaskDuration());
-        first.setTaskDoneTillToday(first.getTaskDoneTillToday() + second.getTaskDoneTillToday());
-        first.setTaskDoneToday(first.getTaskDoneToday() + second.getTaskDoneToday());
-        return first;
+        if (goalLeftToday>0) {
+            this.goalLeftToday = String.format("%02d:%02d",
+                    TimeUnit.MILLISECONDS.toHours(goalLeftToday),
+                    TimeUnit.MILLISECONDS.toMinutes(goalLeftToday) -
+                            TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(goalLeftToday)));
+        } else
+            this.goalLeftToday = "-";
     }
 
 

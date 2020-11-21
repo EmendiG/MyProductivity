@@ -8,9 +8,9 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class Tasks {
-    private SimpleIntegerProperty taskID;
-    private SimpleStringProperty taskName;
-    private SimpleLongProperty sqlID;
+    protected SimpleIntegerProperty taskID;
+    protected SimpleStringProperty taskName;
+    protected SimpleLongProperty sqlID;
 
 
 
