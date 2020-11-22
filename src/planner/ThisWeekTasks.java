@@ -39,9 +39,15 @@ public class ThisWeekTasks extends TodayTasks {
                 Calendar calTodayPlus7 = new CalendarDate(6).getOffsettedCalendar();
                 long leftDurationPlus7 = this.goalDuration.get() - this.taskDoneTillThisPeriod.get();
                 long leftDaysPlus7 = (this.goalDate.get() - calTodayPlus7.getTimeInMillis() ) / 86400000L;
-                long averageShouldBeGoalDone = leftDurationPlus7 / leftDaysPlus7;
-                setGoalLeftThisWeek(averageShouldBeGoalDone*7 - this.taskDoneThisPeriod.get());
-
+                long averageShouldBeGoalDone;
+                if (leftDaysPlus7 > 6) {
+                    averageShouldBeGoalDone = leftDurationPlus7 / leftDaysPlus7;
+                    setGoalLeftThisWeek(averageShouldBeGoalDone * 7 - this.taskDoneThisPeriod.get());
+                }
+                else {
+                    averageShouldBeGoalDone = leftDurationPlus7 / 7;
+                    setGoalLeftThisWeek(0);
+                }
                 this.goalDoneThisWeek = ( this.taskDoneThisPeriod.get() * 100 / (averageShouldBeGoalDone*7) ) + "%";
             }
 

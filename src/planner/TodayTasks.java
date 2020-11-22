@@ -7,18 +7,17 @@ import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 public class TodayTasks extends Tasks {
-
-    protected final SimpleLongProperty taskDuration;
-    protected final SimpleLongProperty goalDuration;
     protected final SimpleStringProperty goalChoice;
     protected final SimpleLongProperty goalDate;
-    protected final SimpleStringProperty taskDurationInString;
+
+    protected final SimpleLongProperty goalDuration;
     protected String goalDoneToday;
     protected String goalLeftToday;
+
+    protected final SimpleLongProperty taskDuration;
+    protected final SimpleStringProperty taskDurationInString;
     protected final SimpleLongProperty taskDoneTillThisPeriod;
     protected final SimpleLongProperty taskDoneThisPeriod;
-
-
 
     public TodayTasks() {
         super();
@@ -35,6 +34,21 @@ public class TodayTasks extends Tasks {
         this.taskDurationInString =  new SimpleStringProperty();
         this.taskDoneTillThisPeriod = new SimpleLongProperty();
         this.taskDoneThisPeriod = new SimpleLongProperty();
+    }
+
+    // constructor for MyAnalysis -> Tasks ChoiceBox
+    public TodayTasks(String tempName) {
+        this();
+        super.taskName.set(tempName);
+    }
+    // enum for MyAnalysis -> Tasks ChoiceBox
+    public enum TodayTasksChoice {
+        ALLTASKS;
+
+        @Override
+        public String toString() {
+            return "ALL TASKS";
+        }
     }
 
     public long getTaskDuration() {
@@ -121,14 +135,16 @@ public class TodayTasks extends Tasks {
                 setGoalLeftToday(this.goalDuration.get() / 31 - this.taskDoneThisPeriod.get());
 
             } else {
-
                 Calendar calEnd = new CalendarDate(0).getOffsettedCalendar();
-
-                long leftHoursTillToday = this.goalDuration.get() - this.taskDoneTillThisPeriod.get();
                 long leftDays = (this.goalDate.get() - calEnd.getTimeInMillis() ) / 86400000L;
-                setGoalLeftToday((leftHoursTillToday)/leftDays - taskDoneThisPeriod.get());
-
-                this.goalDoneToday = ( this.taskDoneThisPeriod.get()*100/(leftHoursTillToday/leftDays) ) + "%";
+                long leftHoursTillToday = this.goalDuration.get() - this.taskDoneTillThisPeriod.get();
+                if (leftDays > 0 ) {
+                    setGoalLeftToday((leftHoursTillToday) / leftDays - taskDoneThisPeriod.get());
+                    this.goalDoneToday = ( this.taskDoneThisPeriod.get()*100/(leftHoursTillToday/leftDays) ) + "%";
+                } else {
+                    setGoalLeftToday((leftHoursTillToday) - taskDoneThisPeriod.get());
+                    this.goalDoneToday = "NO TIME LEFT";
+                }
             }
 
         } else {
@@ -146,7 +162,6 @@ public class TodayTasks extends Tasks {
         } else
             this.goalLeftToday = "-";
     }
-
 
     @Override
     public String toString() {

@@ -4,9 +4,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
 public class Tasks {
     protected SimpleIntegerProperty taskID;
     protected SimpleStringProperty taskName;

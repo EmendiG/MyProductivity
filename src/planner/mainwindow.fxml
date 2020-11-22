@@ -158,16 +158,18 @@
                            </children>
                         </AnchorPane>
                   </content>
+
+
                 </Tab>
                   <Tab text="MyAnalysis">
                      <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                            <children>
-                              <DatePicker layoutX="557.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
-                              <DatePicker layoutX="715.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
+                              <DatePicker fx:id="startDatePicker" layoutX="557.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
+                              <DatePicker fx:id="endDatePicker" layoutX="715.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
                               <Label layoutX="517.0" layoutY="14.0" prefHeight="17.0" prefWidth="40.0" text="From:" />
                               <Label layoutX="691.0" layoutY="14.0" prefHeight="17.0" prefWidth="24.0" text="To:" />
-                              <ScatterChart layoutY="46.0" prefHeight="315.0" prefWidth="837.0">
+                              <ScatterChart fx:id="taskScatterChart" layoutY="46.0" prefHeight="315.0" prefWidth="837.0">
                                  <xAxis>
                                     <CategoryAxis side="BOTTOM" />
                                  </xAxis>
@@ -175,7 +177,7 @@
                                     <NumberAxis side="LEFT" />
                                  </yAxis>
                               </ScatterChart>
-                              <BarChart layoutY="346.0" prefHeight="247.0" prefWidth="835.0">
+                              <BarChart fx:id="taskBarChart" layoutY="346.0" prefHeight="247.0" prefWidth="835.0">
                                  <xAxis>
                                     <CategoryAxis side="BOTTOM" />
                                  </xAxis>
@@ -183,14 +185,17 @@
                                     <NumberAxis side="LEFT" />
                                  </yAxis>
                               </BarChart>
-                              <ChoiceBox layoutX="53.0" layoutY="10.0" prefHeight="25.0" prefWidth="215.0" />
+                              <ChoiceBox fx:id="taskTab2ChoiceBox" layoutX="53.0" layoutY="10.0" prefHeight="25.0" prefWidth="215.0" />
                               <Label layoutX="20.0" layoutY="14.0" prefHeight="17.0" prefWidth="33.0" text="Task:" />
-                              <ChoiceBox layoutX="358.0" layoutY="10.0" prefHeight="25.0" prefWidth="136.0" />
+                              <ChoiceBox fx:id="dayChoiceBox" layoutX="358.0" layoutY="10.0" prefHeight="25.0" prefWidth="136.0" />
                               <Label layoutX="296.0" layoutY="14.0" prefHeight="17.0" prefWidth="62.0" text="Weekday:" />
                            </children>
                         </AnchorPane>
                      </content>
                   </Tab>
+
+
+
                 <Tab text="MyData">
                   <content>
                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">

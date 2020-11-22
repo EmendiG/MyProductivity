@@ -234,6 +234,62 @@ public class PostgreSQLJDBC {
         }
     }
 
+    public List<ThisWeekTasks> getTasksInTimeRangeMappedToDays(int taskID, Timestamp startTime, Timestamp endTime, int dayOffsett) {
+        StringBuilder sb = new StringBuilder(QUERY_TASK_DURATION_IN_TIME_RANGE);
+        // taskIDs are starting from 1
+        if (taskID == 0)
+            sb.append(String.format(CONDITIONS_TIME_RANGE_WITH_NULL, startTime, endTime));
+        else {
+            sb.append(" WHERE " + TABLE_TASKNAMES + "." + COLUMN_TASK_ID + " = ");          // no need to query particular task and then add nulls
+            sb.append(taskID);
+            sb.append(String.format(CONDITIONS_TIME_RANGE_NO_NULL, startTime, endTime ));
+        }
+
+        try (Connection conn = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASS);
+             Statement stmt = conn.createStatement()) {
+
+            // calendar to check task duration performed today / in the past
+            Calendar calEnd = new CalendarDate(dayOffsett).getOffsettedCalendar();
+            List<ThisWeekTasks> tasks = new ArrayList<>();
+            ResultSet rs = stmt.executeQuery(sb.toString());
+            while (rs.next()) {
+                ThisWeekTasks task = new ThisWeekTasks();
+                task.setTaskName(rs.getString(COLUMN_TASK_NAME));
+                task.setTaskID(rs.getInt(COLUMN_TASK_ID));
+                task.setGoalChoice(rs.getString(COLUMN_GOAL_CHOICE));
+                if ( rs.getInt(COLUMN_GOAL_HOURS) != 0 )
+                    task.setGoalDuration(rs.getInt(COLUMN_GOAL_HOURS));
+                if ( rs.getTimestamp(COLUMN_GOAL_DATE) != null )
+                    task.setGoalDate(rs.getTimestamp(COLUMN_GOAL_DATE).getTime() );
+                if ( rs.getTimestamp(COLUMN_END_TIME) != null && rs.getTimestamp(COLUMN_START_TIME) != null ) {
+                    task.setTaskDuration(rs.getTimestamp(COLUMN_END_TIME).getTime() - rs.getTimestamp(COLUMN_START_TIME).getTime());
+                    // check if this task was performed today and for how long, AND how long this task was performed in the past
+                    if ( rs.getTimestamp(COLUMN_END_TIME).getTime() < calEnd.getTimeInMillis() )
+                        task.setTaskDoneTillThisPeriod( rs.getTimestamp(COLUMN_END_TIME).getTime() - rs.getTimestamp(COLUMN_START_TIME).getTime() );
+                    else
+                        task.setTaskDoneThisPeriod( rs.getTimestamp(COLUMN_END_TIME).getTime() - rs.getTimestamp(COLUMN_START_TIME).getTime() );
+                }
+                else
+                    task.setTaskDuration(0L);
+                tasks.add(task);
+            }
+
+            Map<Integer, ThisWeekTasks> mappedTasks =
+                    tasks.stream().collect(Collectors.toMap(ThisWeekTasks::getTaskID, Function.identity(), ThisWeekTasks::merge));
+            List<ThisWeekTasks> sortedTasks = new ArrayList<>(mappedTasks.values());
+            // set collected task duration from a period assign it as a time string
+            sortedTasks.forEach(x -> x.setTaskDurationInString( x.getTaskDoneThisPeriod() ));
+            // tasks firstly go to right ListView and taskDuration is the most important factor there
+            sortedTasks.sort((x,y) -> x.getTaskDuration() > y.getTaskDuration() ? -1 : 1);
+            return sortedTasks;
+
+        } catch (SQLException e) {
+            System.out.println("SQL statement that has failed: " + "\n\t" + sb.toString() + "\n");
+            System.out.println("Sorted task query failed: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
     public List<String> getListedTasknames() {
         try (Connection conn = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASS);
              Statement stmt = conn.createStatement()) {
