@@ -1,19 +1,22 @@
 package planner;
 
+import java.time.LocalDate;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class ThisWeekTasks extends TodayTasks {
+public class ThisWeekTasks extends ThisDayTasks {
 
     protected String goalDoneThisWeek;
     protected String goalLeftThisWeek;
-
-
+    protected Map<LocalDate, Long> howLongTaskDoneADay;
 
     public ThisWeekTasks() {
         super();
         this.goalDoneThisWeek = getGoalDoneThisWeek();
         this.goalLeftThisWeek = getGoalLeftThisWeek();
+        this.howLongTaskDoneADay = new HashMap<>();
     }
 
     public String getGoalDoneThisWeek() {
@@ -71,10 +74,39 @@ public class ThisWeekTasks extends TodayTasks {
             this.goalLeftThisWeek = "-";
     }
 
+    public Map<LocalDate, Long> getHowLongTaskDoneADay() {
+        return howLongTaskDoneADay;
+    }
+
+    public void setHowLongTaskDoneADay(Map<LocalDate, Long> howLongTaskDoneADay) {
+        this.howLongTaskDoneADay = howLongTaskDoneADay;
+    }
+
+    public void putHowLongTaskDoneADay(LocalDate whatDate, Long howLong) {
+        this.howLongTaskDoneADay.put(whatDate, howLong);
+    }
+
+    public void putALLHowLongTaskDoneADay(Map<LocalDate, Long> howLongTaskDoneADay) {
+        this.howLongTaskDoneADay.putAll( howLongTaskDoneADay );
+    }
+
+    public Map<LocalDate, Long> sumALLHowLongTaskDoneADay(Map<LocalDate, Long> howLongTaskDoneADay) {
+        if (!howLongTaskDoneADay.keySet().isEmpty()) {
+            LocalDate key = (LocalDate) howLongTaskDoneADay.keySet().toArray()[0];
+            if (this.howLongTaskDoneADay.containsKey(key)) {
+                this.howLongTaskDoneADay.put(key, this.howLongTaskDoneADay.get(key) + howLongTaskDoneADay.get(key));
+            } else {
+                this.howLongTaskDoneADay.putAll(howLongTaskDoneADay);
+            }
+        }
+        return this.howLongTaskDoneADay;
+    }
+
     public static ThisWeekTasks merge(ThisWeekTasks first, ThisWeekTasks second) {
         first.setTaskDuration(first.getTaskDuration() + second.getTaskDuration());
         first.setTaskDoneTillThisPeriod(first.getTaskDoneTillThisPeriod() + second.getTaskDoneTillThisPeriod());
         first.setTaskDoneThisPeriod(first.getTaskDoneThisPeriod() + second.getTaskDoneThisPeriod());
+        first.putALLHowLongTaskDoneADay(first.sumALLHowLongTaskDoneADay(second.getHowLongTaskDoneADay()));
         return first;
     }
 }

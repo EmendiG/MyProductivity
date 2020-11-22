@@ -6,7 +6,7 @@ import javafx.beans.property.SimpleStringProperty;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
-public class TodayTasks extends Tasks {
+public class ThisDayTasks extends Tasks {
     protected final SimpleStringProperty goalChoice;
     protected final SimpleLongProperty goalDate;
 
@@ -19,7 +19,7 @@ public class TodayTasks extends Tasks {
     protected final SimpleLongProperty taskDoneTillThisPeriod;
     protected final SimpleLongProperty taskDoneThisPeriod;
 
-    public TodayTasks() {
+    public ThisDayTasks() {
         super();
         this.goalChoice = new SimpleStringProperty();
         this.goalDate = new SimpleLongProperty();
@@ -37,7 +37,7 @@ public class TodayTasks extends Tasks {
     }
 
     // constructor for MyAnalysis -> Tasks ChoiceBox
-    public TodayTasks(String tempName) {
+    public ThisDayTasks(String tempName) {
         this();
         super.taskName.set(tempName);
     }

@@ -20,6 +20,13 @@ public enum Weekdays {
         nDay = nWeek;
     }
 
+    public static String getEnumByNDay(int nDay) {
+        for (Weekdays weekdays : Weekdays.values())
+            if (weekdays.nDay.equals(nDay))
+                return weekdays.name();
+        return null;
+    }
+
     @Override
     public String toString() {
         return weekday;

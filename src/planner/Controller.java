@@ -34,7 +34,7 @@ public class Controller {
 
     // Tab 1
     @FXML
-    private ListView<TodayTasks> tasksTable;
+    private ListView<ThisDayTasks> tasksTable;
     @FXML
     private Button startButton;
     @FXML
@@ -46,7 +46,7 @@ public class Controller {
     @FXML
     private TextField filterTasksTextField;
     @FXML
-    private TableView<TodayTasks> todayTableView;
+    private TableView<ThisDayTasks> todayTableView;
     @FXML
     private TableView<ThisWeekTasks> weekTableView;
 
@@ -63,7 +63,7 @@ public class Controller {
     }
 
     public void startCurrentTask() {
-        final TodayTasks selectedTask = tasksTable.getSelectionModel().getSelectedItem();
+        final ThisDayTasks selectedTask = tasksTable.getSelectionModel().getSelectedItem();
 
         if (selectedTask == null) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -195,7 +195,7 @@ public class Controller {
     }
 
     // shared list of "all" tasks
-    private  ObservableList<TodayTasks> observableTodayTaskList;
+    private  ObservableList<ThisDayTasks> observableTodayTaskList;
 
     public void updateListView(int taskSelected, String currentTaskAssigned) {
         observableTodayTaskList = FXCollections.observableArrayList(
@@ -203,11 +203,12 @@ public class Controller {
                         .getSortedTaskByLengthInTimeRange(  0,
                                 new Timestamp(0L),
                                 new Timestamp(System.currentTimeMillis() + 10000),
-                                0
+                                0,
+                                null
                         )
         );
 
-        FilteredList<TodayTasks> filteredTasks = new FilteredList<>(observableTodayTaskList);
+        FilteredList<ThisDayTasks> filteredTasks = new FilteredList<>(observableTodayTaskList);
         tasksTable.setItems(filteredTasks);
 
         filteredTasks.predicateProperty().bind(Bindings.createObjectBinding( () -> {
@@ -241,9 +242,9 @@ public class Controller {
 
     public void updateTodayTableView() {
 
-        ObservableList<TodayTasks> filteredObservableTaskList = FXCollections.observableArrayList( observableTodayTaskList
+        ObservableList<ThisDayTasks> filteredObservableTaskList = FXCollections.observableArrayList( observableTodayTaskList
                 .stream()
-                .peek(TodayTasks::setGoalDoneToday)
+                .peek(ThisDayTasks::setGoalDoneToday)
                 .filter(x -> (x.getTaskDoneThisPeriod() > 1))
                 .sorted((x,y) -> x.getTaskDoneThisPeriod() > y.getTaskDoneThisPeriod() ? -1 : 1)
                 .collect(Collectors.toList())
@@ -263,7 +264,8 @@ public class Controller {
                         .getSortedTaskByLengthInTimeRange(  0,
                                 new Timestamp(0L),
                                 new Timestamp(System.currentTimeMillis() + 10000),
-                                6
+                                6,
+                                null
                         )
         );
 
@@ -287,7 +289,7 @@ public class Controller {
     @FXML
     private DatePicker endDatePicker;
     @FXML
-    private ChoiceBox<TodayTasks> taskTab2ChoiceBox;
+    private ChoiceBox<ThisDayTasks> taskTab2ChoiceBox;
     @FXML
     private ChoiceBox<Weekdays> dayChoiceBox;
     @FXML
@@ -302,8 +304,8 @@ public class Controller {
         List<Weekdays> coll = Arrays.stream(Weekdays.values()).collect(Collectors.toList());
         dayChoiceBox.setItems(FXCollections.observableArrayList(coll));
         dayChoiceBox.setValue(Weekdays.EVERYDAY);
-        List<TodayTasks> tab2TasksChoiceList = new ArrayList<>(observableTodayTaskList);
-        TodayTasks allTasks = new TodayTasks(TodayTasks.TodayTasksChoice.ALLTASKS.toString());
+        List<ThisDayTasks> tab2TasksChoiceList = new ArrayList<>(observableTodayTaskList);
+        ThisDayTasks allTasks = new ThisDayTasks(ThisDayTasks.TodayTasksChoice.ALLTASKS.toString());
         tab2TasksChoiceList.add(0, allTasks);
         taskTab2ChoiceBox.setItems(FXCollections.observableArrayList(tab2TasksChoiceList));
         taskTab2ChoiceBox.setValue(allTasks);
@@ -313,12 +315,12 @@ public class Controller {
         AtomicReference<LocalDate> startDate = new AtomicReference<>(LocalDate.of(1970,1,1));
         AtomicReference<LocalDate> endDate = new AtomicReference<>(LocalDate.now().plus(1, ChronoUnit.DAYS));
 
-        taskTab2ChoiceBox.valueProperty().addListener((observableValue, todayTasks, t1) -> {
-            if (todayTasks != t1) {
+        taskTab2ChoiceBox.valueProperty().addListener((observableValue, thisDayTasks, t1) -> {
+            if (thisDayTasks != t1) {
                 System.out.println("taskTab2ChoiceBox value has changed " + observableValue.getValue().taskID.get() );
                 taskChosen.set(observableValue.getValue().taskID.get());
                 System.out.println(taskChosen + " " + dayChosen + " " + startDate + " " + endDate);
-                populateGraph(taskChosen.get(), startDate.get(), endDate.get(), 0, dayChosen.get());
+                populateGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
             }
         });
 
@@ -327,7 +329,7 @@ public class Controller {
                 System.out.println("dayChoiceBox value has changed " + observableValue.getValue().nDay );
                 dayChosen.set(observableValue.getValue().nDay);
                 System.out.println(taskChosen + " " + dayChosen + " " + startDate + " " + endDate);
-                populateGraph(taskChosen.get(), startDate.get(), endDate.get(), 0, dayChosen.get());
+                populateGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
             }
         });
 
@@ -336,7 +338,7 @@ public class Controller {
                 System.out.println("startDatePicker value has changed "+ observableValue.getValue() );
                 startDate.set(observableValue.getValue());
                 System.out.println(taskChosen + " " + dayChosen + " " + startDate + " " + endDate);
-                populateGraph(taskChosen.get(), startDate.get(), endDate.get(), 0, dayChosen.get());
+                populateGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
             }
         });
 
@@ -345,22 +347,23 @@ public class Controller {
                 System.out.println("endDatePicker value has changed " + observableValue.getValue() );
                 endDate.set(observableValue.getValue());
                 System.out.println(taskChosen + " " + dayChosen + " " + startDate + " " + endDate);
-                populateGraph(taskChosen.get(), startDate.get(), endDate.get(), 0, dayChosen.get());
+                populateGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
             }
         });
 
     }
 
-    //      int taskID, Timestamp startTime, Timestamp endTime, int dayOffsett, int dayChosen)
+    public void populateGraph(int taskId,  LocalDate startTime, LocalDate endTime, int dayChosen) {
 
-    public void populateGraph(int taskId,  LocalDate startTime, LocalDate endTime, int dayOffsett, int dayChosen) {
         List<ThisWeekTasks> tasksInTimeRangeMappedToDays =
                 PostgreSQLJDBC.getInstance()
-                        .getTasksInTimeRangeMappedToDays(   taskId,
+                        .getSortedTaskByLengthInTimeRange(  taskId,
                                                             Timestamp.valueOf(startTime.atStartOfDay()),
                                                             Timestamp.valueOf(endTime.atStartOfDay()),
-                                                            dayOffsett);
-        tasksInTimeRangeMappedToDays.forEach( x -> System.out.println(x.taskName.get() + " = " + x.goalDuration.get()));
+                                                            0,
+                                                            Weekdays.getEnumByNDay(dayChosen));
+
+        tasksInTimeRangeMappedToDays.forEach( x -> System.out.println(x.taskName.get() + " = " + x.howLongTaskDoneADay));
     }
 
 }
