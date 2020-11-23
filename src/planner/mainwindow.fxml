@@ -6,6 +6,7 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
+<?import planner.DateAxis310?>
 <VBox fx:id="mainWindow" prefHeight="661.0" prefWidth="848.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="planner.Controller">
   <children>
     <MenuBar VBox.vgrow="NEVER">
@@ -169,9 +170,10 @@
                               <DatePicker fx:id="endDatePicker" layoutX="715.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
                               <Label layoutX="517.0" layoutY="14.0" prefHeight="17.0" prefWidth="40.0" text="From:" />
                               <Label layoutX="691.0" layoutY="14.0" prefHeight="17.0" prefWidth="24.0" text="To:" />
-                              <ScatterChart fx:id="taskScatterChart" layoutY="46.0" prefHeight="315.0" prefWidth="837.0">
+
+                              <ScatterChart fx:id="taskScatterChart" layoutY="46.0" prefHeight="315.0" prefWidth="837.0" >
                                  <xAxis>
-                                    <CategoryAxis side="BOTTOM" />
+                                    <DateAxis310 fx:id="xAxisScatterChart" side="BOTTOM" />
                                  </xAxis>
                                  <yAxis>
                                     <NumberAxis side="LEFT" />

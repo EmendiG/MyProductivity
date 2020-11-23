@@ -1,16 +1,14 @@
 package planner;
 
 import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class ThisWeekTasks extends ThisDayTasks {
 
     protected String goalDoneThisWeek;
     protected String goalLeftThisWeek;
-    protected Map<LocalDate, Long> howLongTaskDoneADay;
+    public Map<LocalDate, Long> howLongTaskDoneADay;
 
     public ThisWeekTasks() {
         super();
@@ -93,11 +91,10 @@ public class ThisWeekTasks extends ThisDayTasks {
     public Map<LocalDate, Long> sumALLHowLongTaskDoneADay(Map<LocalDate, Long> howLongTaskDoneADay) {
         if (!howLongTaskDoneADay.keySet().isEmpty()) {
             LocalDate key = (LocalDate) howLongTaskDoneADay.keySet().toArray()[0];
-            if (this.howLongTaskDoneADay.containsKey(key)) {
+            if (this.howLongTaskDoneADay.containsKey(key))
                 this.howLongTaskDoneADay.put(key, this.howLongTaskDoneADay.get(key) + howLongTaskDoneADay.get(key));
-            } else {
+            else
                 this.howLongTaskDoneADay.putAll(howLongTaskDoneADay);
-            }
         }
         return this.howLongTaskDoneADay;
     }
@@ -109,4 +106,5 @@ public class ThisWeekTasks extends ThisDayTasks {
         first.putALLHowLongTaskDoneADay(first.sumALLHowLongTaskDoneADay(second.getHowLongTaskDoneADay()));
         return first;
     }
+
 }
