@@ -7,38 +7,26 @@ import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javafx.beans.binding.Bindings;
 import javafx.util.StringConverter;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.DateAxis;
-import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.fx.ChartViewer;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 
 
 public class Controller {
@@ -74,6 +62,7 @@ public class Controller {
         updateTodayTableView();
         updateWeeklyTableView();
         showDataOnTab2Graphs();
+        populateScatterGraph(0, LocalDate.of(1970,1,1), LocalDate.now().plusDays(1), 0, ThisDayTasks.TodayTasksChoice.ALLTASKS.name());
     }
 
     public void startCurrentTask() {
@@ -315,13 +304,15 @@ public class Controller {
         AtomicReference<Integer> dayChosen = new AtomicReference<>(0);
         AtomicReference<LocalDate> startDate = new AtomicReference<>(LocalDate.of(1970, 1, 1));
         AtomicReference<LocalDate> endDate = new AtomicReference<>(LocalDate.now().plus(1, ChronoUnit.DAYS));
+        AtomicReference<String> taskName = new AtomicReference<>(Weekdays.EVERYDAY.weekday);
 
         taskTab2ChoiceBox.valueProperty().addListener((observableValue, thisDayTasks, t1) -> {
             if (thisDayTasks != t1) {
                 System.out.println("taskTab2ChoiceBox value has changed " + observableValue.getValue().taskID.get());
                 taskChosen.set(observableValue.getValue().taskID.get());
+                taskName.set(observableValue.getValue().taskName.get());
                 System.out.println(taskChosen + " " + dayChosen + " " + startDate + " " + endDate);
-                populateGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
+                populateScatterGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get(), taskName.get());
             }
         });
 
@@ -330,7 +321,7 @@ public class Controller {
                 System.out.println("dayChoiceBox value has changed " + observableValue.getValue().nDay);
                 dayChosen.set(observableValue.getValue().nDay);
                 System.out.println(taskChosen + " " + dayChosen + " " + startDate + " " + endDate);
-                populateGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
+                populateScatterGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get(), taskName.get());
             }
         });
 
@@ -339,7 +330,7 @@ public class Controller {
                 System.out.println("startDatePicker value has changed " + observableValue.getValue());
                 startDate.set(observableValue.getValue());
                 System.out.println(taskChosen + " " + dayChosen + " " + startDate + " " + endDate);
-                populateGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
+                populateScatterGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get(), taskName.get());
             }
         });
 
@@ -348,7 +339,7 @@ public class Controller {
                 System.out.println("endDatePicker value has changed " + observableValue.getValue());
                 endDate.set(observableValue.getValue());
                 System.out.println(taskChosen + " " + dayChosen + " " + startDate + " " + endDate);
-                populateGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
+                populateScatterGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get(), taskName.get());
             }
         });
 
@@ -363,21 +354,27 @@ public class Controller {
     private ChoiceBox<ThisDayTasks> taskTab2ChoiceBox;
     @FXML
     private ChoiceBox<Weekdays> dayChoiceBox;
+
     @FXML
-    private ScatterChart<LocalDateTime, Long> taskScatterChart;
+    private LineChart<LocalDateTime, Long> taskScatterChart;
+    @FXML
+    private NumberAxis yAxisScatterChart;
+    @FXML
+    private DateAxis310 xAxisScatterChart;
+
     @FXML
     private BarChart taskBarChart;
 
-
-//    @FXML
-//    private xAxis xAxisScatterChart;
-
+    @FXML
+    private AnchorPane tab2AnchorPane;
 
     // https://stackoverflow.com/questions/12478758/converting-a-jfreechart-timeseries-series-with-day-data-to-week-or-month-data/12481509#12481509
     // https://stackoverflow.com/questions/13064406/javafx-real-time-linechart-with-time-axis
     // https://stackoverflow.com/questions/25892695/tooltip-on-line-chart-showing-date
 
-    public void populateGraph(int taskId, LocalDate startTime, LocalDate endTime, int dayChosen) {
+    // https://github.com/JKostikiadis/MultiAxisScatterChart
+
+    public void populateScatterGraph(int taskId, LocalDate startTime, LocalDate endTime, int dayChosen, String taskName) {
         List<ThisWeekTasks> tasksInTimeRangeMappedToDays =
                 PostgreSQLJDBC.getInstance()
                         .getSortedTaskByLengthInTimeRange(taskId,
@@ -386,6 +383,7 @@ public class Controller {
                                 0,
                                 Weekdays.getEnumByNDay(dayChosen));
 
+        // sort task's howLongTaskDoneADay by a KEY (LocalDate)
         for (ThisWeekTasks task : tasksInTimeRangeMappedToDays) {
             LinkedHashMap<LocalDate, Long> collected =
                     task.getHowLongTaskDoneADay()
@@ -396,33 +394,98 @@ public class Controller {
             task.setHowLongTaskDoneADay(collected);
         }
 
-//        XYChart.Series<String, String> series = new XYChart.Series<>();
-//        tasksInTimeRangeMappedToDays.forEach(x ->
-//                x.getHowLongTaskDoneADay().forEach(
-//                        (k,v) -> series.getData()
-//                            .addAll(new XYChart.Data<>( k.toString(),
-//                                        String.format("%02d:%02d",
-//                                        TimeUnit.MILLISECONDS.toHours(v),
-//                                        TimeUnit.MILLISECONDS.toMinutes(v) -
-//                                                TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(v))  ))) ));
-
-
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
 
         XYChart.Series<LocalDateTime, Long> series = new XYChart.Series<>();
-        tasksInTimeRangeMappedToDays.forEach(x ->
-                x.getHowLongTaskDoneADay()
-                        .forEach((k,v) ->
-                                series.getData().addAll( new XYChart.Data<>( LocalDateTime.of(k.getYear(), k.getMonthValue(), k.getDayOfMonth(), 0 ,0, 0) , v ) )  // java.sql.Date.valueOf(k) k.atStartOfDay().toInstant(ZoneOffset.UTC).getEpochSecond()
-                        )
-        );
+        XYChart.Series<LocalDateTime, Long> regression = new XYChart.Series<>();
+        List<Double> doubleXList = new ArrayList<>();
+        List<Double> doubleYList = new ArrayList<>();
 
-        ObservableList<XYChart.Series<LocalDateTime, Long>> filteredObservableTaskList = FXCollections.observableArrayList( series );
+        if (tasksInTimeRangeMappedToDays.size() == 1) {
+            tasksInTimeRangeMappedToDays.forEach(x ->
+                    x.getHowLongTaskDoneADay()
+                            .forEach((k, v) -> {
+                                        series.getData().addAll(new XYChart.Data<>(LocalDateTime.of(k.getYear(), k.getMonthValue(), k.getDayOfMonth(), 0, 0, 0), v ));
+                                        doubleXList.add( (double) k.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli());
+                                        doubleYList.add(v.doubleValue());
+                                    }
+                            )
+            );
 
-        taskScatterChart.setData(filteredObservableTaskList);
+            double[] doubleXArray = doubleXList.stream().mapToDouble(Double::doubleValue).toArray();
+            double[] doubleYArray = doubleYList.stream().mapToDouble(Double::doubleValue).toArray();
+            LinearRegression linearRegression = new LinearRegression(doubleXArray, doubleYArray);
+
+            LocalDateTime firstDate = series.getData().get(0).getXValue();
+            LocalDateTime lastDate = series.getData().get(series.getData().size() - 1).getXValue();
+            long firstXValue = firstDate.toInstant(ZoneOffset.UTC).toEpochMilli();
+            long lastXValue = lastDate.toInstant(ZoneOffset.UTC).toEpochMilli();
+            long firstPrediction = (long) linearRegression.predict(firstXValue);
+            long lastPrediction =  (long) linearRegression.predict(lastXValue);
+
+            regression.getData().addAll(new XYChart.Data<>(LocalDateTime.of(firstDate.getYear(), firstDate.getMonthValue(), firstDate.getDayOfMonth(), 0, 0, 0), firstPrediction) );
+            regression.getData().addAll(new XYChart.Data<>(LocalDateTime.of(lastDate.getYear(), lastDate.getMonthValue(), lastDate.getDayOfMonth(), 0, 0, 0), lastPrediction) );
+
+            series.setName( tasksInTimeRangeMappedToDays.get(0).getTaskName().trim() );
+            regression.setName("regression");
+        } else {
+            Map<LocalDate, Long> data = new HashMap<>();
+            for (ThisWeekTasks task : tasksInTimeRangeMappedToDays) {
+//                task.getHowLongTaskDoneADay()
+//                        .forEach((k, v) -> {
+//                                    series.getData().addAll(new XYChart.Data<>(LocalDateTime.of(k.getYear(), k.getMonthValue(), k.getDayOfMonth(), 0, 0, 0), v));
+//                                }
+//                        );
+                for (LocalDate key : task.getHowLongTaskDoneADay().keySet()) {
+                    if (data.containsKey(key))
+                        data.put(key, data.get(key) + task.getHowLongTaskDoneADay().get(key));
+                    else
+                        data.put(key, task.getHowLongTaskDoneADay().get(key));
+                }
+            }
+            data.forEach((k,v) ->  regression.getData().addAll(new XYChart.Data<>(LocalDateTime.of(k.getYear(), k.getMonthValue(), k.getDayOfMonth(), 0, 0, 0), v )));
+            data.forEach((k,v) ->  series.getData().addAll( new XYChart.Data<>( LocalDateTime.of(k.getYear(), k.getMonthValue(), k.getDayOfMonth(), 0 ,0, 0) , v ) ));
+
+            series.setName(ThisDayTasks.TodayTasksChoice.ALLTASKS.toString());
+            regression.setName("regression");
+        }
+
+//        LocalDate firstDate = (LocalDate) tasksInTimeRangeMappedToDays.get(0).getHowLongTaskDoneADay().keySet().toArray()[0];
+//        LocalDate zeroDate = firstDate.minusDays(1);
+//        LocalDate lastDate = (LocalDate) tasksInTimeRangeMappedToDays.get(tasksInTimeRangeMappedToDays.size() - 1).getHowLongTaskDoneADay().keySet().toArray()[0];
+//        LocalDate plusDate = lastDate.plusDays(1);
+//
+//        xAxisScatterChart.setAutoRanging(false);
+//        xAxisScatterChart.setLowerBound(LocalDateTime.of(zeroDate.getYear(), zeroDate.getMonthValue(), zeroDate.getDayOfMonth(), 0 ,0, 0));
+//        xAxisScatterChart.setUpperBound(LocalDateTime.of(plusDate.getYear(), plusDate.getMonthValue(), plusDate.getDayOfMonth(), 0 ,0, 0));
+
+        yAxisScatterChart.setTickLabelFormatter(new StringConverter<Number>() {
+            @Override
+            public String toString(Number number) {
+                return String.format("%02d:%02d",
+                        TimeUnit.MILLISECONDS.toHours(number.longValue()),
+                        TimeUnit.MILLISECONDS.toMinutes(number.longValue()) -
+                                TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(number.longValue())));
+            }
+            @Override
+            public Number fromString(String s) {
+                return 0;
+            }
+        });
+        xAxisScatterChart.setTickLabelRotation(-25);
+
+
+        if (!taskScatterChart.getData().isEmpty()) {
+            taskScatterChart.getData().clear();
+        }
+        taskScatterChart.getData().addAll(series, regression);
+
         taskScatterChart.setAnimated(false);
-
+        taskScatterChart.getData().forEach(x -> {
+            if (x.getName().equals(series.getName()))
+                x.getNode().toFront();
+            else
+                x.getNode().toBack();
+        });
     }
 }
 

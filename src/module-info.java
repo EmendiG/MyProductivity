@@ -6,6 +6,7 @@ module MyProductivity {
     requires org.jfree.jfreechart;
     requires jfreechart.fx;
     requires java.base;
+    requires javafx.base;
 
 
     opens planner;

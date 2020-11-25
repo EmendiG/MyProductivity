@@ -20,7 +20,6 @@ public class NewTasks {
         TILL_DATE("Till date");
 
         String chosenTaskGoal;
-        String[] allChoices;
 
         private newTaskChoice(String choice) {
             chosenTaskGoal = choice;

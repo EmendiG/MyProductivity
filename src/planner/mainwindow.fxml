@@ -5,8 +5,8 @@
 <?import javafx.scene.control.cell.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import planner.*?>
 
-<?import planner.DateAxis310?>
 <VBox fx:id="mainWindow" prefHeight="661.0" prefWidth="848.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="planner.Controller">
   <children>
     <MenuBar VBox.vgrow="NEVER">
@@ -78,7 +78,7 @@
                                                         </ImageView>
                                                     </graphic>
                                                 </Button>
-                                                <Button fx:id="stopButton" mnemonicParsing="false" onAction="#stopCurrentTask">
+                                                <Button fx:id="stopButton" disable="true" mnemonicParsing="false" onAction="#stopCurrentTask">
                                                     <tooltip>
                                                         <Tooltip text="Stop the task timer" />
                                                     </tooltip>
@@ -164,21 +164,21 @@
                 </Tab>
                   <Tab text="MyAnalysis">
                      <content>
-                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                        <AnchorPane fx:id="tab2AnchorPane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                            <children>
                               <DatePicker fx:id="startDatePicker" layoutX="557.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
                               <DatePicker fx:id="endDatePicker" layoutX="715.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
                               <Label layoutX="517.0" layoutY="14.0" prefHeight="17.0" prefWidth="40.0" text="From:" />
                               <Label layoutX="691.0" layoutY="14.0" prefHeight="17.0" prefWidth="24.0" text="To:" />
 
-                              <ScatterChart fx:id="taskScatterChart" layoutY="46.0" prefHeight="315.0" prefWidth="837.0" >
+                              <LineChart fx:id="taskScatterChart" layoutY="46.0" prefHeight="315.0" prefWidth="837.0" stylesheets="@taskScatterChart.css">
                                  <xAxis>
-                                    <DateAxis310 fx:id="xAxisScatterChart" side="BOTTOM" />
+                                    <DateAxis310 side="BOTTOM" fx:id="xAxisScatterChart" />
                                  </xAxis>
                                  <yAxis>
-                                    <NumberAxis side="LEFT" />
+                                    <NumberAxis fx:id="yAxisScatterChart" side="LEFT" />
                                  </yAxis>
-                              </ScatterChart>
+                              </LineChart>
                               <BarChart fx:id="taskBarChart" layoutY="346.0" prefHeight="247.0" prefWidth="835.0">
                                  <xAxis>
                                     <CategoryAxis side="BOTTOM" />

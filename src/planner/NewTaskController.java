@@ -68,10 +68,10 @@ public class NewTaskController {
         Double goalHours = hourSpinner.getValue();
         LocalDate pickedDate = datePicker.getValue();
 
-        if ( (!goalChoice.equals(NewTasks.newTaskChoice.NONE.chosenTaskGoal) && (goalHours == null || goalHours == 0 ))
-        ||   (goalChoice.equals(NewTasks.newTaskChoice.TILL_DATE.chosenTaskGoal) && pickedDate == null )
-        ||   (goalChoice.equals(NewTasks.newTaskChoice.NONE.chosenTaskGoal) && nameTextField.getText().isEmpty() )
-        ||   (nameTextField.getText().isEmpty()) ) {
+        if (    (!goalChoice.equals(NewTasks.newTaskChoice.NONE.chosenTaskGoal) && (goalHours == null || goalHours == 0 ))
+            ||   (goalChoice.equals(NewTasks.newTaskChoice.TILL_DATE.chosenTaskGoal) && pickedDate == null )
+            ||   (goalChoice.equals(NewTasks.newTaskChoice.NONE.chosenTaskGoal) && nameTextField.getText().isEmpty() )
+            ||   (nameTextField.getText().isEmpty()) ) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error Dialog");
             alert.setHeaderText("Wrong variables:");
