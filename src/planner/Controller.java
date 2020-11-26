@@ -59,8 +59,10 @@ public class Controller {
         updateListView(0, null);
         updateTodayTableView();
         updateWeeklyTableView();
+        // TAB 2
         showDataOnTab2Graphs();
-        populateScatterGraph(0, LocalDate.of(1970,1,1), LocalDate.now().plusDays(1), 0, ThisDayTasks.TodayTasksChoice.ALLTASKS.name());
+        populateLinearGraph(0, LocalDate.of(1970,1,1), LocalDate.now().plusDays(1), 0);
+        populateBarChart();
     }
 
     public void startCurrentTask() {
@@ -116,18 +118,18 @@ public class Controller {
     }
 
     @FXML
-    public void showCurrentTimeElapsed() {
+    private void showCurrentTimeElapsed() {
         taskTimer.startTimer(currentTimeLabel);
     }
 
     @FXML
-    public void stopCurrentTimeElapsed() {
+    private void stopCurrentTimeElapsed() {
         taskTimer.stopTimer();
         currentTimeLabel.setText("None");
     }
 
     @FXML
-    public void showNewTaskWindow() {
+    private void showNewTaskWindow() {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.initOwner(mainWindow.getScene().getWindow());
         dialog.setTitle("MyProductivity New Task");
@@ -198,7 +200,7 @@ public class Controller {
     // shared list of "all" tasks
     private ObservableList<ThisDayTasks> observableTodayTaskList;
 
-    public void updateListView(int taskSelected, String currentTaskAssigned) {
+    private void updateListView(int taskSelected, String currentTaskAssigned) {
         observableTodayTaskList = FXCollections.observableArrayList(
                 PostgreSQLJDBC.getInstance()
                         .getSortedTaskByLengthInTimeRange(0,
@@ -241,7 +243,7 @@ public class Controller {
         }
     }
 
-    public void updateTodayTableView() {
+    private void updateTodayTableView() {
 
         ObservableList<ThisDayTasks> filteredObservableTaskList = FXCollections.observableArrayList(observableTodayTaskList
                 .stream()
@@ -257,7 +259,10 @@ public class Controller {
         todayTableView.setItems(filteredObservableTaskList);
     }
 
-    public void updateWeeklyTableView() {
+    // filteredObservableTaskList is used by 2nd TAB :: taskTab2ChoiceBox
+    private ObservableList<ThisWeekTasks> filteredObservableTaskList;
+
+    private void updateWeeklyTableView() {
 
         // offset by 6 day, where 7th day is today (week = 6 past days + today)
         ObservableList<ThisWeekTasks> observableWeekTaskList = FXCollections.observableArrayList(
@@ -270,7 +275,7 @@ public class Controller {
                         )
         );
 
-        ObservableList<ThisWeekTasks> filteredObservableTaskList = FXCollections.observableArrayList(observableWeekTaskList
+        filteredObservableTaskList = FXCollections.observableArrayList(observableWeekTaskList
                 .stream()
                 .peek(ThisWeekTasks::setGoalDoneThisWeek)
                 .filter(x -> (x.getTaskDoneThisPeriod() > 1))
@@ -288,62 +293,6 @@ public class Controller {
 
 
     //======================================== Tab 2 MyAnalysis ========================================//
-
-    public void showDataOnTab2Graphs() {
-
-        List<Weekdays> coll = Arrays.stream(Weekdays.values()).collect(Collectors.toList());
-        dayChoiceBox.setItems(FXCollections.observableArrayList(coll));
-        dayChoiceBox.setValue(Weekdays.EVERYDAY);
-        List<ThisDayTasks> tab2TasksChoiceList = new ArrayList<>(observableTodayTaskList);
-        ThisDayTasks allTasks = new ThisDayTasks(ThisDayTasks.TodayTasksChoice.ALLTASKS.toString());
-        tab2TasksChoiceList.add(0, allTasks);
-        taskTab2ChoiceBox.setItems(FXCollections.observableArrayList(tab2TasksChoiceList));
-        taskTab2ChoiceBox.setValue(allTasks);
-
-        AtomicReference<Integer> taskChosen = new AtomicReference<>(Weekdays.EVERYDAY.nDay);
-        AtomicReference<Integer> dayChosen = new AtomicReference<>(0);
-        AtomicReference<LocalDate> startDate = new AtomicReference<>(LocalDate.of(1970, 1, 1));
-        AtomicReference<LocalDate> endDate = new AtomicReference<>(LocalDate.now().plus(1, ChronoUnit.DAYS));
-        AtomicReference<String> taskName = new AtomicReference<>(Weekdays.EVERYDAY.weekday);
-
-        taskTab2ChoiceBox.valueProperty().addListener((observableValue, thisDayTasks, t1) -> {
-            if (thisDayTasks != t1) {
-                System.out.println("taskTab2ChoiceBox value has changed " + observableValue.getValue().taskID.get());
-                taskChosen.set(observableValue.getValue().taskID.get());
-                taskName.set(observableValue.getValue().taskName.get());
-                System.out.println(taskChosen + " " + dayChosen + " " + startDate + " " + endDate);
-                populateScatterGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get(), taskName.get());
-            }
-        });
-
-        dayChoiceBox.valueProperty().addListener((observableValue, todayTasks, t1) -> {
-            if (todayTasks != t1) {
-                System.out.println("dayChoiceBox value has changed " + observableValue.getValue().nDay);
-                dayChosen.set(observableValue.getValue().nDay);
-                System.out.println(taskChosen + " " + dayChosen + " " + startDate + " " + endDate);
-                populateScatterGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get(), taskName.get());
-            }
-        });
-
-        startDatePicker.valueProperty().addListener((observableValue, localDate, t1) -> {
-            if (localDate != t1) {
-                System.out.println("startDatePicker value has changed " + observableValue.getValue());
-                startDate.set(observableValue.getValue());
-                System.out.println(taskChosen + " " + dayChosen + " " + startDate + " " + endDate);
-                populateScatterGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get(), taskName.get());
-            }
-        });
-
-        endDatePicker.valueProperty().addListener((observableValue, localDate, t1) -> {
-            if (localDate != t1) {
-                System.out.println("endDatePicker value has changed " + observableValue.getValue());
-                endDate.set(observableValue.getValue());
-                System.out.println(taskChosen + " " + dayChosen + " " + startDate + " " + endDate);
-                populateScatterGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get(), taskName.get());
-            }
-        });
-
-    }
 
     // Tab 2
     @FXML
@@ -363,10 +312,57 @@ public class Controller {
     private DateAxis310 xAxisLinearChart;
 
     @FXML
-    private BarChart taskBarChart;
+    private AnchorPane anchorPane;
 
+    private void showDataOnTab2Graphs() {
 
-    public void populateScatterGraph(int taskId, LocalDate startTime, LocalDate endTime, int dayChosen, String taskName) {
+        List<Weekdays> coll = Arrays.stream(Weekdays.values()).collect(Collectors.toList());
+        dayChoiceBox.setItems(FXCollections.observableArrayList(coll));
+        dayChoiceBox.setValue(Weekdays.EVERYDAY);
+        // filter showed tasks by LocalDate occurrences, so that in graph there would be at least 2 points
+        List<ThisDayTasks> tab2TasksChoiceList = filteredObservableTaskList.stream().filter(x -> x.getHowLongTaskDoneADay().size() > 1).collect(Collectors.toList());
+        // add ALL TASKS field to the list
+        ThisDayTasks allTasks = new ThisDayTasks(ThisDayTasks.TodayTasksChoice.ALLTASKS.toString());
+        tab2TasksChoiceList.add(0, allTasks);
+        taskTab2ChoiceBox.setItems(FXCollections.observableArrayList(tab2TasksChoiceList));
+        taskTab2ChoiceBox.setValue(allTasks);
+
+        AtomicReference<Integer> taskChosen = new AtomicReference<>(Weekdays.EVERYDAY.nDay);
+        AtomicReference<Integer> dayChosen = new AtomicReference<>(0);
+        AtomicReference<LocalDate> startDate = new AtomicReference<>(LocalDate.of(1970, 1, 1));
+        AtomicReference<LocalDate> endDate = new AtomicReference<>(LocalDate.now().plus(1, ChronoUnit.DAYS));
+
+        taskTab2ChoiceBox.valueProperty().addListener((observableValue, thisDayTasks, t1) -> {
+            if (thisDayTasks != t1) {
+                taskChosen.set(observableValue.getValue().taskID.get());
+                populateLinearGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
+            }
+        });
+
+        dayChoiceBox.valueProperty().addListener((observableValue, todayTasks, t1) -> {
+            if (todayTasks != t1) {
+                dayChosen.set(observableValue.getValue().nDay);
+                populateLinearGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
+            }
+        });
+
+        startDatePicker.valueProperty().addListener((observableValue, localDate, t1) -> {
+            if (localDate != t1) {
+                startDate.set(observableValue.getValue());
+                populateLinearGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
+            }
+        });
+
+        endDatePicker.valueProperty().addListener((observableValue, localDate, t1) -> {
+            if (localDate != t1) {
+                endDate.set(observableValue.getValue());
+                populateLinearGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
+            }
+        });
+
+    }
+
+    private void populateLinearGraph(int taskId, LocalDate startTime, LocalDate endTime, int dayChosen) {
         List<ThisWeekTasks> tasksInTimeRangeMappedToDays =
                 PostgreSQLJDBC.getInstance()
                         .getSortedTaskByLengthInTimeRange(taskId,
@@ -386,7 +382,7 @@ public class Controller {
             task.setHowLongTaskDoneADay(collected);
         }
 
-        // "series" line is transparent <taskScatterChart.css> only mark points are visible
+        // "series" line is transparent <taskLinearChart.css> only mark points are visible
         XYChart.Series<LocalDateTime, Long> series = new XYChart.Series<>();
         XYChart.Series<LocalDateTime, Long> regression = new XYChart.Series<>();
         List<Double> doubleXList = new ArrayList<>();
@@ -401,10 +397,9 @@ public class Controller {
                                 doubleYList.add(v.doubleValue());
                             })
             );
-
-
             series.setName( tasksInTimeRangeMappedToDays.get(0).getTaskName().trim() );
             regression.setName("regression");
+
         } else {
             // "ALL TASKS" should be summed up to one value
             Map<LocalDate, Long> data = new HashMap<>();
@@ -429,8 +424,11 @@ public class Controller {
         double[] doubleYArray = doubleYList.stream().mapToDouble(Double::doubleValue).toArray();
         LinearRegression linearRegression = new LinearRegression(doubleXArray, doubleYArray);
 
-        LocalDateTime firstDate = series.getData().get(0).getXValue();
-        LocalDateTime lastDate = series.getData().get(series.getData().size() - 1).getXValue();
+        // there are always some values because there is a check if there are at least 2 LocalDate values in the task list
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
+        LocalDateTime firstDate = series.getData().stream().min(Comparator.comparing(XYChart.Data::getXValue)).get().getXValue();
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
+        LocalDateTime lastDate = series.getData().stream().max(Comparator.comparing(XYChart.Data::getXValue)).get().getXValue();
         long firstXValue = firstDate.toInstant(ZoneOffset.UTC).toEpochMilli();
         long lastXValue = lastDate.toInstant(ZoneOffset.UTC).toEpochMilli();
         long firstPrediction = (long) linearRegression.predict(firstXValue);
@@ -465,6 +463,39 @@ public class Controller {
             else
                 x.getNode().toBack();
         });
+    }
+
+    private void populateBarChart() {
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        CustomBar<String, Long> taskBarChart = new CustomBar<>(xAxis, yAxis );
+        XYChart.Series<String, Long> series = new XYChart.Series<>();
+
+        observableTodayTaskList.forEach(x ->
+                series.getData().addAll( new XYChart.Data<>(x.getTaskName(), x.getTaskDuration()) )
+        );
+
+        yAxis.setTickLabelFormatter(new StringConverter<Number>() {
+            @Override
+            public String toString(Number number) {
+                return String.format("%02d:%02d",
+                        TimeUnit.MILLISECONDS.toHours(number.longValue()),
+                        TimeUnit.MILLISECONDS.toMinutes(number.longValue()) -
+                                TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(number.longValue())));
+            }
+            @Override
+            public Number fromString(String s) {
+                return 0;
+            }
+        });
+
+        anchorPane.getChildren().add(0, taskBarChart);
+        taskBarChart.setLayoutY(346);
+        taskBarChart.setPrefHeight(280);
+        taskBarChart.setPrefWidth(835);
+        taskBarChart.getStylesheets().add("taskCustomBar.css");
+
+        taskBarChart.setData(FXCollections.observableArrayList(series));
     }
 }
 
