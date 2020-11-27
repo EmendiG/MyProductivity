@@ -23,7 +23,7 @@ public class Main extends Application {
     @Override
     public void init() throws Exception {
         super.init();
-        if(!PostgreSQLJDBC.getInstance().open()) {
+        if(!Postgresql.getInstance().open()) {
             System.out.println("FATAL ERROR: Couldn't connect to database");
             Platform.exit();
         }
@@ -32,18 +32,18 @@ public class Main extends Application {
     @Override
     public void stop() throws Exception {
         super.stop();
-        PostgreSQLJDBC.getInstance().updateEndTimeForLastTaskIfNull();
-        PostgreSQLJDBC.getInstance().close();
+        Postgresql.getInstance().updateEndTimeForLastTaskIfNull();
+        Postgresql.getInstance().close();
     }
 
     public static void main(String[] args) {
         try {
-            PostgreSQLJDBC.getInstance().open();
-            PostgreSQLJDBC.getInstance().setUpTable(PostgreSQLJDBC.CREATE_TABLE_TASKS);
-            PostgreSQLJDBC.getInstance().setUpTable(PostgreSQLJDBC.CREATE_TABLE_TASKNAMES);
-            PostgreSQLJDBC.getInstance().setUpTable(PostgreSQLJDBC.CREATE_TABLE_GOALS);
-            PostgreSQLJDBC.getInstance().deleteTasksWithoutEndTime();
-            PostgreSQLJDBC.getInstance().close();
+            Postgresql.getInstance().open();
+            Postgresql.getInstance().setUpTable(Postgresql.CREATE_TABLE_TASKS);
+            Postgresql.getInstance().setUpTable(Postgresql.CREATE_TABLE_TASKNAMES);
+            Postgresql.getInstance().setUpTable(Postgresql.CREATE_TABLE_GOALS);
+            Postgresql.getInstance().deleteTasksWithoutEndTime();
+            Postgresql.getInstance().close();
 
 
         } catch (SQLException e) {

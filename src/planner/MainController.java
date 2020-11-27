@@ -27,7 +27,7 @@ import javafx.beans.binding.Bindings;
 import javafx.util.StringConverter;
 
 
-public class Controller {
+public class MainController {
 
     @FXML
     private VBox mainWindow;
@@ -35,7 +35,7 @@ public class Controller {
 
     // Tab 1
     @FXML
-    private ListView<ThisDayTasks> tasksTable;
+    private ListView<ThisWeekTasks> tasksTable;
     @FXML
     private Button startButton;
     @FXML
@@ -60,9 +60,12 @@ public class Controller {
         updateTodayTableView();
         updateWeeklyTableView();
         // TAB 2
-        showDataOnTab2Graphs();
+        setVariablesForTab2Graph();
         populateLinearGraph(0, LocalDate.of(1970,1,1), LocalDate.now().plusDays(1), 0);
         populateBarChart();
+        // TAB 3
+        setVariablesForTab3Table();
+        populateTable(0, LocalDate.of(1970,1,1), LocalDate.now().plusDays(1));
     }
 
     public void startCurrentTask() {
@@ -88,7 +91,7 @@ public class Controller {
         tasksTable.setStyle(" -fx-selection-bar: green; -fx-selection: green; -fx-selection-bar-non-focused: green;");
         tasksTable.setOpacity(1);
         try {
-            currentlyAssignedTask = PostgreSQLJDBC.getInstance().insertTask(selectedTask);
+            currentlyAssignedTask = Postgresql.getInstance().insertTask(selectedTask);
             startButton.setDisable(true);
             currentTaskLabel.setText(selectedTask.getTaskName());
             showCurrentTimeElapsed();
@@ -101,7 +104,7 @@ public class Controller {
     public void stopCurrentTask() {
         try {
             tasksTable.setDisable(false);
-            PostgreSQLJDBC.getInstance().insertEndTime(currentlyAssignedTask.getID());
+            Postgresql.getInstance().insertEndTime(currentlyAssignedTask.getID());
             stopButton.setDisable(true);
             currentTaskLabel.setText("None");
             stopCurrentTimeElapsed();
@@ -153,7 +156,7 @@ public class Controller {
             if (newTask.getNewTaskName() == null)
                 showNewTaskWindow();
             else {
-                List<String> listedTasknames = PostgreSQLJDBC.getInstance().getListedTasknames();
+                List<String> listedTasknames = Postgresql.getInstance().getListedTasknames();
                 Alert alert;
                 Alert successfullyAddedTaskAlert = new Alert(Alert.AlertType.INFORMATION);
                 successfullyAddedTaskAlert.setTitle("Task added");
@@ -178,12 +181,12 @@ public class Controller {
                     alert.setContentText("Are you sure that you want to add task?");
                     Optional<ButtonType> buttonType = alert.showAndWait();
                     if (buttonType.isPresent() && buttonType.get() == ButtonType.OK) {
-                        PostgreSQLJDBC.getInstance().insertNewGoal(newTask);
+                        Postgresql.getInstance().insertNewGoal(newTask);
                         successfullyAddedTaskAlert.show();
                         updateListView(tasksTable.getItems().size(), newTask.getNewTaskName());
                     }
                 } else if (!theSameTask) {
-                    PostgreSQLJDBC.getInstance().insertNewGoal(newTask);
+                    Postgresql.getInstance().insertNewGoal(newTask);
                     successfullyAddedTaskAlert.show();
                     updateListView(tasksTable.getItems().size(), newTask.getNewTaskName());
                 } else {
@@ -198,11 +201,11 @@ public class Controller {
     }
 
     // shared list of "all" tasks
-    private ObservableList<ThisDayTasks> observableTodayTaskList;
+    private ObservableList<ThisWeekTasks> observableAllTaskList;
 
     private void updateListView(int taskSelected, String currentTaskAssigned) {
-        observableTodayTaskList = FXCollections.observableArrayList(
-                PostgreSQLJDBC.getInstance()
+        observableAllTaskList = FXCollections.observableArrayList(
+                Postgresql.getInstance()
                         .getSortedTaskByLengthInTimeRange(0,
                                 new Timestamp(0L),
                                 new Timestamp(System.currentTimeMillis() + 10000),
@@ -211,7 +214,7 @@ public class Controller {
                         )
         );
 
-        FilteredList<ThisDayTasks> filteredTasks = new FilteredList<>(observableTodayTaskList);
+        FilteredList<ThisWeekTasks> filteredTasks = new FilteredList<>(observableAllTaskList);
         tasksTable.setItems(filteredTasks);
 
         filteredTasks.predicateProperty().bind(Bindings.createObjectBinding(() -> {
@@ -245,7 +248,7 @@ public class Controller {
 
     private void updateTodayTableView() {
 
-        ObservableList<ThisDayTasks> filteredObservableTaskList = FXCollections.observableArrayList(observableTodayTaskList
+        ObservableList<ThisDayTasks> filteredObservableTaskList = FXCollections.observableArrayList(observableAllTaskList
                 .stream()
                 .peek(ThisDayTasks::setGoalDoneToday)
                 .filter(x -> (x.getTaskDoneThisPeriod() > 1))
@@ -259,14 +262,11 @@ public class Controller {
         todayTableView.setItems(filteredObservableTaskList);
     }
 
-    // filteredObservableTaskList is used by 2nd TAB :: taskTab2ChoiceBox
-    private ObservableList<ThisWeekTasks> filteredObservableTaskList;
-
     private void updateWeeklyTableView() {
 
         // offset by 6 day, where 7th day is today (week = 6 past days + today)
         ObservableList<ThisWeekTasks> observableWeekTaskList = FXCollections.observableArrayList(
-                PostgreSQLJDBC.getInstance()
+                Postgresql.getInstance()
                         .getSortedTaskByLengthInTimeRange(0,
                                 new Timestamp(0L),
                                 new Timestamp(System.currentTimeMillis() + 10000),
@@ -275,16 +275,13 @@ public class Controller {
                         )
         );
 
-        filteredObservableTaskList = FXCollections.observableArrayList(observableWeekTaskList
+        ObservableList<ThisWeekTasks> filteredObservableTaskList = FXCollections.observableArrayList(observableWeekTaskList
                 .stream()
                 .peek(ThisWeekTasks::setGoalDoneThisWeek)
                 .filter(x -> (x.getTaskDoneThisPeriod() > 1))
                 .sorted((x, y) -> x.getTaskDoneThisPeriod() > y.getTaskDoneThisPeriod() ? -1 : 1)
                 .collect(Collectors.toList())
         );
-
-        // TODO: don't show tasks with only ONE day done from a weekTableView
-
         // set the table not selectable
         weekTableView.setMouseTransparent(true);
         weekTableView.setFocusTraversable(false);
@@ -294,13 +291,12 @@ public class Controller {
 
     //======================================== Tab 2 MyAnalysis ========================================//
 
-    // Tab 2
     @FXML
-    private DatePicker startDatePicker;
+    private DatePicker startDatePickerTab2;
     @FXML
-    private DatePicker endDatePicker;
+    private DatePicker endDatePickerTab2;
     @FXML
-    private ChoiceBox<ThisDayTasks> taskTab2ChoiceBox;
+    private ChoiceBox<ThisDayTasks> taskChoiceBoxTab2;
     @FXML
     private ChoiceBox<Weekdays> dayChoiceBox;
 
@@ -314,25 +310,25 @@ public class Controller {
     @FXML
     private AnchorPane anchorPane;
 
-    private void showDataOnTab2Graphs() {
+    private void setVariablesForTab2Graph() {
 
         List<Weekdays> coll = Arrays.stream(Weekdays.values()).collect(Collectors.toList());
         dayChoiceBox.setItems(FXCollections.observableArrayList(coll));
         dayChoiceBox.setValue(Weekdays.EVERYDAY);
-        // filter showed tasks by LocalDate occurrences, so that in graph there would be at least 2 points
-        List<ThisDayTasks> tab2TasksChoiceList = filteredObservableTaskList.stream().filter(x -> x.getHowLongTaskDoneADay().size() > 1).collect(Collectors.toList());
+        // filtered List shows tasks by LocalDate occurrences, so that in graph there would be at least 2 points on each measurement
+        List<ThisDayTasks> tab2TasksChoiceList = observableAllTaskList.stream().filter(x -> x.getHowLongTaskDoneADay().size() > 1).collect(Collectors.toList());
         // add ALL TASKS field to the list
         ThisDayTasks allTasks = new ThisDayTasks(ThisDayTasks.TodayTasksChoice.ALLTASKS.toString());
         tab2TasksChoiceList.add(0, allTasks);
-        taskTab2ChoiceBox.setItems(FXCollections.observableArrayList(tab2TasksChoiceList));
-        taskTab2ChoiceBox.setValue(allTasks);
+        taskChoiceBoxTab2.setItems(FXCollections.observableArrayList(tab2TasksChoiceList));
+        taskChoiceBoxTab2.setValue(allTasks);
 
-        AtomicReference<Integer> taskChosen = new AtomicReference<>(Weekdays.EVERYDAY.nDay);
-        AtomicReference<Integer> dayChosen = new AtomicReference<>(0);
+        AtomicReference<Integer> taskChosen = new AtomicReference<>(0);
+        AtomicReference<Integer> dayChosen = new AtomicReference<>(Weekdays.EVERYDAY.nDay);
         AtomicReference<LocalDate> startDate = new AtomicReference<>(LocalDate.of(1970, 1, 1));
         AtomicReference<LocalDate> endDate = new AtomicReference<>(LocalDate.now().plus(1, ChronoUnit.DAYS));
 
-        taskTab2ChoiceBox.valueProperty().addListener((observableValue, thisDayTasks, t1) -> {
+        taskChoiceBoxTab2.valueProperty().addListener((observableValue, thisDayTasks, t1) -> {
             if (thisDayTasks != t1) {
                 taskChosen.set(observableValue.getValue().taskID.get());
                 populateLinearGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
@@ -346,14 +342,14 @@ public class Controller {
             }
         });
 
-        startDatePicker.valueProperty().addListener((observableValue, localDate, t1) -> {
+        startDatePickerTab2.valueProperty().addListener((observableValue, localDate, t1) -> {
             if (localDate != t1) {
                 startDate.set(observableValue.getValue());
                 populateLinearGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
             }
         });
 
-        endDatePicker.valueProperty().addListener((observableValue, localDate, t1) -> {
+        endDatePickerTab2.valueProperty().addListener((observableValue, localDate, t1) -> {
             if (localDate != t1) {
                 endDate.set(observableValue.getValue());
                 populateLinearGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
@@ -363,13 +359,14 @@ public class Controller {
     }
 
     private void populateLinearGraph(int taskId, LocalDate startTime, LocalDate endTime, int dayChosen) {
-        List<ThisWeekTasks> tasksInTimeRangeMappedToDays =
-                PostgreSQLJDBC.getInstance()
+        List<ThisMonthTasks> tasksInTimeRangeMappedToDays =
+                Postgresql.getInstance()
                         .getSortedTaskByLengthInTimeRange(taskId,
                                 Timestamp.valueOf(startTime.atStartOfDay()),
                                 Timestamp.valueOf(endTime.atStartOfDay()),
                                 0,
-                                Weekdays.getEnumByNDay(dayChosen));
+                                Weekdays.getEnumByNDay(dayChosen)
+                        );
 
         // sort task's howLongTaskDoneADay by a KEY<LocalDate>
         for (ThisWeekTasks task : tasksInTimeRangeMappedToDays) {
@@ -471,7 +468,7 @@ public class Controller {
         CustomBar<String, Long> taskBarChart = new CustomBar<>(xAxis, yAxis );
         XYChart.Series<String, Long> series = new XYChart.Series<>();
 
-        observableTodayTaskList.forEach(x ->
+        observableAllTaskList.forEach(x ->
                 series.getData().addAll( new XYChart.Data<>(x.getTaskName(), x.getTaskDuration()) )
         );
 
@@ -497,5 +494,74 @@ public class Controller {
 
         taskBarChart.setData(FXCollections.observableArrayList(series));
     }
+
+    //======================================== Tab 3 MyData ========================================//
+
+    @FXML
+    private DatePicker startDatePickerTab3;
+    @FXML
+    private DatePicker endDatePickerTab3;
+    @FXML
+    private ChoiceBox<ThisDayTasks> taskChoiceBoxTab3;
+    @FXML
+    private TableView<ThisMonthTasks> monthTableView;
+
+    private void setVariablesForTab3Table() {
+
+        // filtered List shows tasks by LocalDate occurrences, so that in graph there would be at least 2 points on each measurement
+        List<ThisDayTasks> tab2TasksChoiceList = observableAllTaskList.stream().filter(x -> x.getHowLongTaskDoneADay().size() > 1).collect(Collectors.toList());
+        // add ALL TASKS field to the list
+        ThisDayTasks allTasks = new ThisDayTasks(ThisDayTasks.TodayTasksChoice.ALLTASKS.toString());
+        tab2TasksChoiceList.add(0, allTasks);
+        taskChoiceBoxTab3.setItems(FXCollections.observableArrayList(tab2TasksChoiceList));
+        taskChoiceBoxTab3.setValue(allTasks);
+
+        AtomicReference<Integer> taskChosen = new AtomicReference<>();
+        AtomicReference<LocalDate> startDate = new AtomicReference<>(LocalDate.of(1970, 1, 1));
+        AtomicReference<LocalDate> endDate = new AtomicReference<>(LocalDate.now().plus(1, ChronoUnit.DAYS));
+
+        taskChoiceBoxTab3.valueProperty().addListener((observableValue, thisDayTasks, t1) -> {
+            if (thisDayTasks != t1) {
+                taskChosen.set(observableValue.getValue().taskID.get());
+                populateTable(taskChosen.get(), startDate.get(), endDate.get());
+            }
+        });
+
+        startDatePickerTab3.valueProperty().addListener((observableValue, localDate, t1) -> {
+            if (localDate != t1) {
+                startDate.set(observableValue.getValue());
+                populateTable(taskChosen.get(), startDate.get(), endDate.get());
+            }
+        });
+
+        endDatePickerTab3.valueProperty().addListener((observableValue, localDate, t1) -> {
+            if (localDate != t1) {
+                endDate.set(observableValue.getValue());
+                populateTable(taskChosen.get(), startDate.get(), endDate.get());
+            }
+        });
+    }
+
+    private void populateTable(int taskId, LocalDate startTime, LocalDate endTime) {
+        List<ThisMonthTasks> tasksInTimeRangeMappedToDays =
+                Postgresql.getInstance()
+                        .getSortedTaskByLengthInTimeRange(taskId,
+                                Timestamp.valueOf(startTime.atStartOfDay()),
+                                Timestamp.valueOf(endTime.atStartOfDay()),
+                                30,
+                                Weekdays.EVERYDAY.weekday
+                        );
+
+        ObservableList<ThisMonthTasks> filteredObservableTaskList = FXCollections.observableArrayList(tasksInTimeRangeMappedToDays
+                .stream()
+                .peek(ThisMonthTasks::setGoalDoneThisMonth)
+                .peek(ThisMonthTasks::setAverageTaskDoneThisMonth)
+                .sorted((x, y) -> x.getTaskDoneThisPeriod() > y.getTaskDoneThisPeriod() ? -1 : 1)
+                .collect(Collectors.toList())
+        );
+
+        monthTableView.setItems(filteredObservableTaskList);
+    }
+
 }
 

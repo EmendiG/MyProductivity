@@ -1,5 +1,6 @@
 package planner;
 
+import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -7,7 +8,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class PostgreSQLJDBC {
+public class Postgresql {
     public static final String DB_NAME = "myproductivitydb";
     public static final String CONNECTION_STRING = "jdbc:postgresql://localhost:5432/" + DB_NAME;
     public static final String DB_USER = "planner";
@@ -121,9 +122,9 @@ public class PostgreSQLJDBC {
     private Statement stmt;
 
     // not thread safe
-    private static PostgreSQLJDBC instance = new PostgreSQLJDBC();
-    private PostgreSQLJDBC(){}
-    public static PostgreSQLJDBC getInstance() {
+    private static Postgresql instance = new Postgresql();
+    private Postgresql(){}
+    public static Postgresql getInstance() {
         return instance;
     }
 
@@ -180,7 +181,7 @@ public class PostgreSQLJDBC {
      taskID = 0 to query ALL TASKS !!!
 
     */
-    public List<ThisWeekTasks> getSortedTaskByLengthInTimeRange(int taskID, Timestamp startTime, Timestamp endTime, int dayOffsett, String dayOfTheWeek) {
+    public List<ThisMonthTasks> getSortedTaskByLengthInTimeRange(int taskID, Timestamp startTime, Timestamp endTime, int dayOffset, String dayOfTheWeek) {
         StringBuilder sb = new StringBuilder(QUERY_TASK_DURATION_IN_TIME_RANGE);
         // taskIDs are starting from 1
         if (taskID == 0)
@@ -195,11 +196,13 @@ public class PostgreSQLJDBC {
              Statement stmt = conn.createStatement()) {
 
             // calendar to check task duration performed today / in the past
-            Calendar calEnd = new CalendarDate(dayOffsett).getOffsettedCalendar();
-            List<ThisWeekTasks> tasks = new ArrayList<>();
+            Calendar calEnd = new CalendarDate(dayOffset).getOffsettedCalendar();
+            List<ThisMonthTasks> tasks = new ArrayList<>();
             ResultSet rs = stmt.executeQuery(sb.toString());
+
             while (rs.next()) {
-                ThisWeekTasks task = new ThisWeekTasks();
+                ThisMonthTasks task = new ThisMonthTasks();
+
                 task.setTaskName(rs.getString(COLUMN_TASK_NAME));
                 task.setTaskID(rs.getInt(COLUMN_TASK_ID));
                 task.setGoalChoice(rs.getString(COLUMN_GOAL_CHOICE));
@@ -233,9 +236,9 @@ public class PostgreSQLJDBC {
                 tasks.add(task);
             }
 
-            Map<Integer, ThisWeekTasks> mappedTasks =
-                tasks.stream().collect(Collectors.toMap(ThisWeekTasks::getTaskID, Function.identity(), ThisWeekTasks::merge));
-            List<ThisWeekTasks> sortedTasks = new ArrayList<>(mappedTasks.values());
+            Map<Integer, ThisMonthTasks> mappedTasks =
+                tasks.stream().collect(Collectors.toMap(ThisMonthTasks::getTaskID, Function.identity(), ThisMonthTasks::merge));
+            List<ThisMonthTasks> sortedTasks = new ArrayList<>(mappedTasks.values());
             // set collected task duration from a period assign it as a time string
             sortedTasks.forEach(x -> x.setTaskDurationInString( x.getTaskDoneThisPeriod() ));
             // tasks firstly go to right ListView and taskDuration is the most important factor there

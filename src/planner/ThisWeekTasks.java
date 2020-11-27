@@ -76,8 +76,8 @@ public class ThisWeekTasks extends ThisDayTasks {
         return howLongTaskDoneADay;
     }
 
-    public void setHowLongTaskDoneADay(Map<LocalDate, Long> howLongTaskDoneADay) {
-        this.howLongTaskDoneADay = howLongTaskDoneADay;
+    public void setHowLongTaskDoneADay(Map<LocalDate, Long> howLongTaskDoneADayPerMonth) {
+        this.howLongTaskDoneADay= howLongTaskDoneADayPerMonth;
     }
 
     public void putHowLongTaskDoneADay(LocalDate whatDate, Long howLong) {
@@ -99,12 +99,5 @@ public class ThisWeekTasks extends ThisDayTasks {
         return this.howLongTaskDoneADay;
     }
 
-    public static ThisWeekTasks merge(ThisWeekTasks first, ThisWeekTasks second) {
-        first.setTaskDuration(first.getTaskDuration() + second.getTaskDuration());
-        first.setTaskDoneTillThisPeriod(first.getTaskDoneTillThisPeriod() + second.getTaskDoneTillThisPeriod());
-        first.setTaskDoneThisPeriod(first.getTaskDoneThisPeriod() + second.getTaskDoneThisPeriod());
-        first.putALLHowLongTaskDoneADay(first.sumALLHowLongTaskDoneADay(second.getHowLongTaskDoneADay()));
-        return first;
-    }
 
 }

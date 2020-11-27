@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.*?>
 <?import planner.*?>
 
-<VBox fx:id="mainWindow" prefHeight="661.0" prefWidth="848.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="planner.Controller">
+<VBox fx:id="mainWindow" prefHeight="661.0" prefWidth="848.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="planner.MainController">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
@@ -125,7 +125,7 @@
                                                         <PropertyValueFactory property="taskName" />
                                                     </cellValueFactory>
                                                 </TableColumn>
-                                                <TableColumn prefWidth="86.0" style="-fx-alignment: CENTER;" text="Last 7days [h]">
+                                                <TableColumn prefWidth="86.0" style="-fx-alignment: CENTER;" text="Past 7days [h]">
                                                     <cellValueFactory>
                                                         <PropertyValueFactory property="taskDurationInString" />
                                                     </cellValueFactory>
@@ -166,8 +166,8 @@
                      <content>
                         <AnchorPane fx:id="anchorPane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                            <children>
-                              <DatePicker fx:id="startDatePicker" layoutX="557.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
-                              <DatePicker fx:id="endDatePicker" layoutX="715.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
+                              <DatePicker fx:id="startDatePickerTab2" layoutX="557.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
+                              <DatePicker fx:id="endDatePickerTab2" layoutX="715.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
                               <Label layoutX="517.0" layoutY="14.0" prefHeight="17.0" prefWidth="40.0" text="From:" />
                               <Label layoutX="691.0" layoutY="14.0" prefHeight="17.0" prefWidth="24.0" text="To:" />
 
@@ -187,7 +187,7 @@
 <!--                                    <NumberAxis fx:id="yAxisBarChart" side="LEFT" />-->
 <!--                                 </yAxis>-->
 <!--                              </CustomBar>-->
-                              <ChoiceBox fx:id="taskTab2ChoiceBox" layoutX="53.0" layoutY="10.0" prefHeight="25.0" prefWidth="215.0" />
+                              <ChoiceBox fx:id="taskChoiceBoxTab2" layoutX="60.0" layoutY="10.0" prefHeight="25.0" prefWidth="215.0" />
                               <Label layoutX="20.0" layoutY="14.0" prefHeight="17.0" prefWidth="33.0" text="Task:" />
                               <ChoiceBox fx:id="dayChoiceBox" layoutX="358.0" layoutY="10.0" prefHeight="25.0" prefWidth="136.0" />
                               <Label layoutX="296.0" layoutY="14.0" prefHeight="17.0" prefWidth="62.0" text="Weekday:" />
@@ -202,18 +202,34 @@
                   <content>
                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                            <children>
-                              <DatePicker layoutX="557.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
-                              <DatePicker layoutX="715.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
+                              <DatePicker fx:id="startDatePickerTab3" layoutX="557.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
+                              <DatePicker fx:id="endDatePickerTab3" layoutX="715.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
                               <Label layoutX="517.0" layoutY="14.0" prefHeight="17.0" prefWidth="40.0" text="From:" />
                               <Label layoutX="691.0" layoutY="14.0" prefHeight="17.0" prefWidth="24.0" text="To:" />
-                              <ChoiceBox layoutX="60.0" layoutY="10.0" prefHeight="25.0" prefWidth="215.0" />
+                              <ChoiceBox fx:id="taskChoiceBoxTab3" layoutX="60.0" layoutY="10.0" prefHeight="25.0" prefWidth="215.0" />
                               <Label layoutX="20.0" layoutY="14.0" prefHeight="17.0" prefWidth="40.0" text="Task:" />
-                              <TableView layoutX="17.0" layoutY="52.0" prefHeight="155.0" prefWidth="816.0">
+                              <TableView fx:id="monthTableView" layoutX="17.0" layoutY="52.0" prefHeight="155.0" prefWidth="816.0">
                                 <columns>
-                                  <TableColumn prefWidth="350.0" text="Task" />
-                                  <TableColumn minWidth="0.0" prefWidth="150.0" text="Month [h]" />
-                                    <TableColumn prefWidth="150.0" text="Goal[%]" />
-                                    <TableColumn minWidth="0.0" prefWidth="150.0" text="Avg. day[h]" />
+                                  <TableColumn prefWidth="350.0" style="-fx-alignment: CENTER;" text="Task" >
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="taskName" />
+                                      </cellValueFactory>
+                                  </TableColumn>
+                                  <TableColumn minWidth="0.0" prefWidth="150.0" style="-fx-alignment: CENTER;" text="Past 30days [h]" >
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="taskDurationInString" />
+                                      </cellValueFactory>
+                                  </TableColumn>
+                                  <TableColumn prefWidth="150.0" style="-fx-alignment: CENTER;" text="Goal [%]" >
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="goalDoneThisMonth" />
+                                      </cellValueFactory>
+                                  </TableColumn>
+                                  <TableColumn minWidth="0.0" prefWidth="150.0" style="-fx-alignment: CENTER;" text="Avg. day [h]" >
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="averageTaskDoneThisMonth" />
+                                      </cellValueFactory>
+                                  </TableColumn>
                                 </columns>
                               </TableView>
                            </children>
