@@ -3,6 +3,9 @@ package planner;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
@@ -10,7 +13,9 @@ public class ThisDayTasks extends Tasks {
     protected final SimpleStringProperty goalChoice;
     protected final SimpleLongProperty goalDate;
 
+
     protected final SimpleLongProperty goalDuration;
+
     protected String goalDoneToday;
     protected String goalLeftToday;
 
@@ -23,6 +28,7 @@ public class ThisDayTasks extends Tasks {
         super();
         this.goalChoice = new SimpleStringProperty();
         this.goalDate = new SimpleLongProperty();
+
 
         // goalDuration == goalDoneToday + goalLeftToday
         this.goalDuration = new SimpleLongProperty();
@@ -54,7 +60,6 @@ public class ThisDayTasks extends Tasks {
     public long getTaskDuration() {
         return taskDuration.get();
     }
-
     public void setTaskDuration(long taskDuration) {
         this.taskDuration.set(taskDuration);
     }
@@ -62,7 +67,6 @@ public class ThisDayTasks extends Tasks {
     public long getGoalDuration() {
         return goalDuration.get();
     }
-
     public void setGoalDuration(long goalDuration) {
         this.goalDuration.set(goalDuration);
     }
@@ -70,7 +74,6 @@ public class ThisDayTasks extends Tasks {
     public String getGoalChoice() {
         return goalChoice.get();
     }
-
     public void setGoalChoice(String goalChoice) {
         this.goalChoice.set(goalChoice);
     }
@@ -78,7 +81,6 @@ public class ThisDayTasks extends Tasks {
     public long getGoalDate() {
         return goalDate.get();
     }
-
     public void setGoalDate(long goalDate) {
         this.goalDate.set(goalDate);
     }
@@ -86,7 +88,6 @@ public class ThisDayTasks extends Tasks {
     public String getTaskDurationInString() {
         return this.taskDurationInString.get();
     }
-
     public void setTaskDurationInString(Long longTaskDuration) {
         this.taskDurationInString.set( String.format("%02d:%02d",
                 TimeUnit.MILLISECONDS.toHours(longTaskDuration),
@@ -98,7 +99,6 @@ public class ThisDayTasks extends Tasks {
     public String getGoalDoneToday() {
         return this.goalDoneToday;
     }
-
     public String getGoalLeftToday() {
         return this.goalLeftToday;
     }
@@ -106,7 +106,6 @@ public class ThisDayTasks extends Tasks {
     public long getTaskDoneTillThisPeriod() {
         return this.taskDoneTillThisPeriod.get();
     }
-
     public void setTaskDoneTillThisPeriod(long taskDoneTillThisPeriod) {
         this.taskDoneTillThisPeriod.set(taskDoneTillThisPeriod);
     }
@@ -114,7 +113,6 @@ public class ThisDayTasks extends Tasks {
     public long getTaskDoneThisPeriod() {
         return this.taskDoneThisPeriod.get();
     }
-
     public void setTaskDoneThisPeriod(long taskDoneThisPeriod) {
         this.taskDoneThisPeriod.set(taskDoneThisPeriod);
     }
@@ -152,7 +150,6 @@ public class ThisDayTasks extends Tasks {
             setGoalLeftToday(0);
         }
     }
-
     public void setGoalLeftToday(long goalLeftToday) {
         if (goalLeftToday>0) {
             this.goalLeftToday = String.format("%02d:%02d",
@@ -162,6 +159,8 @@ public class ThisDayTasks extends Tasks {
         } else
             this.goalLeftToday = "-";
     }
+
+
 
     @Override
     public String toString() {

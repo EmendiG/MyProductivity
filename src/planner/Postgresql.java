@@ -181,7 +181,7 @@ public class Postgresql {
      taskID = 0 to query ALL TASKS !!!
 
     */
-    public List<ThisMonthTasks> getSortedTaskByLengthInTimeRange(int taskID, Timestamp startTime, Timestamp endTime, int dayOffset, String dayOfTheWeek) {
+    public List<AllTimeTasks> getSortedTaskByLengthInTimeRange(int taskID, Timestamp startTime, Timestamp endTime, int dayOffset, String dayOfTheWeek) {
         StringBuilder sb = new StringBuilder(QUERY_TASK_DURATION_IN_TIME_RANGE);
         // taskIDs are starting from 1
         if (taskID == 0)
@@ -197,11 +197,11 @@ public class Postgresql {
 
             // calendar to check task duration performed today / in the past
             Calendar calEnd = new CalendarDate(dayOffset).getOffsettedCalendar();
-            List<ThisMonthTasks> tasks = new ArrayList<>();
+            List<AllTimeTasks> tasks = new ArrayList<>();
             ResultSet rs = stmt.executeQuery(sb.toString());
 
             while (rs.next()) {
-                ThisMonthTasks task = new ThisMonthTasks();
+                AllTimeTasks task = new AllTimeTasks();
 
                 task.setTaskName(rs.getString(COLUMN_TASK_NAME));
                 task.setTaskID(rs.getInt(COLUMN_TASK_ID));
@@ -236,9 +236,9 @@ public class Postgresql {
                 tasks.add(task);
             }
 
-            Map<Integer, ThisMonthTasks> mappedTasks =
+            Map<Integer, AllTimeTasks> mappedTasks =
                 tasks.stream().collect(Collectors.toMap(ThisMonthTasks::getTaskID, Function.identity(), ThisMonthTasks::merge));
-            List<ThisMonthTasks> sortedTasks = new ArrayList<>(mappedTasks.values());
+            List<AllTimeTasks> sortedTasks = new ArrayList<>(mappedTasks.values());
             // set collected task duration from a period assign it as a time string
             sortedTasks.forEach(x -> x.setTaskDurationInString( x.getTaskDoneThisPeriod() ));
             // tasks firstly go to right ListView and taskDuration is the most important factor there

@@ -1,11 +1,9 @@
 package planner;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class ThisMonthTasks extends ThisWeekTasks {
 
@@ -21,12 +19,11 @@ public class ThisMonthTasks extends ThisWeekTasks {
     public String getGoalDoneThisMonth() {
         return this.goalDoneThisMonth;
     }
-
     public void setGoalDoneThisMonth() {
         if ( !( this.goalChoice.get().equals(NewTasks.newTaskChoice.NONE.chosenTaskGoal) ) ) {
 
             if (        this.goalChoice.get().equals(NewTasks.newTaskChoice.DAILY.chosenTaskGoal) )
-                this.goalDoneThisMonth = ( Math.round(( (double) this.taskDoneThisPeriod.get() / this.goalDuration.get() / 30D ) * 100D) ) + "%" ;
+                this.goalDoneThisMonth = (Math.round(((double) this.taskDoneThisPeriod.get() / this.goalDuration.get() / 30D) * 100D)) + "%";
 
             else if ( this.goalChoice.get().equals(NewTasks.newTaskChoice.WEEKLY.chosenTaskGoal) )
                 this.goalDoneThisMonth = (Math.round((double) this.taskDoneThisPeriod.get() / (double) this.goalDuration.get() / (30D / 7D) * 100D)) + "%";
@@ -55,22 +52,24 @@ public class ThisMonthTasks extends ThisWeekTasks {
     public String getAverageTaskDoneThisMonth() {
         return averageTaskDoneThisMonth;
     }
-
     public void setAverageTaskDoneThisMonth() {
-        LocalDate firstDate = LocalDate.now().minusDays(5);
-        if (!this.getHowLongTaskDoneADay().keySet().isEmpty())
-            firstDate = Collections.min(this.getHowLongTaskDoneADay().keySet());
-        long daysPast = ChronoUnit.DAYS.between(firstDate, LocalDate.now());
-        long average;
-        if (daysPast < 30)
-            average = this.taskDoneThisPeriod.get() / daysPast;
-        else
-            average = this.taskDoneThisPeriod.get() / 30;
+
+        int daysDone = 1;
+        if (!this.getHowLongTaskDoneADay().keySet().isEmpty()) {
+            for (LocalDate dateMeasurement :  this.getHowLongTaskDoneADay().keySet()) {
+                if (ChronoUnit.DAYS.between(dateMeasurement, LocalDate.now()) < 30)
+                    daysDone ++;
+            }
+            daysDone --;
+        }
+        long average = this.taskDoneThisPeriod.get() / daysDone;
+
         this.averageTaskDoneThisMonth = String.format("%02d:%02d",
                 TimeUnit.MILLISECONDS.toHours(average),
                 TimeUnit.MILLISECONDS.toMinutes(average) -
                         TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(average)));
     }
+
 
     public static <T extends ThisWeekTasks> T merge(T first, T second) {
         first.setTaskDuration(first.getTaskDuration() + second.getTaskDuration());

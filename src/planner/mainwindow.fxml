@@ -206,32 +206,79 @@
                               <DatePicker fx:id="endDatePickerTab3" layoutX="715.0" layoutY="10.0" prefHeight="25.0" prefWidth="116.0" />
                               <Label layoutX="517.0" layoutY="14.0" prefHeight="17.0" prefWidth="40.0" text="From:" />
                               <Label layoutX="691.0" layoutY="14.0" prefHeight="17.0" prefWidth="24.0" text="To:" />
-                              <ChoiceBox fx:id="taskChoiceBoxTab3" layoutX="60.0" layoutY="10.0" prefHeight="25.0" prefWidth="215.0" />
-                              <Label layoutX="20.0" layoutY="14.0" prefHeight="17.0" prefWidth="40.0" text="Task:" />
-                              <TableView fx:id="monthTableView" layoutX="17.0" layoutY="52.0" prefHeight="155.0" prefWidth="816.0">
+
+                              <TableView fx:id="monthTableView" layoutX="17.0" layoutY="52.0" prefHeight="217.0" prefWidth="816.0">
                                 <columns>
-                                  <TableColumn prefWidth="350.0" style="-fx-alignment: CENTER;" text="Task" >
+                                  <TableColumn prefWidth="350.0" style="-fx-alignment: CENTER;" text="Task">
                                       <cellValueFactory>
                                           <PropertyValueFactory property="taskName" />
                                       </cellValueFactory>
                                   </TableColumn>
-                                  <TableColumn minWidth="0.0" prefWidth="150.0" style="-fx-alignment: CENTER;" text="Past 30days [h]" >
+                                  <TableColumn minWidth="0.0" prefWidth="150.0" style="-fx-alignment: CENTER;" text="Past 30days [h]">
                                       <cellValueFactory>
                                           <PropertyValueFactory property="taskDurationInString" />
                                       </cellValueFactory>
                                   </TableColumn>
-                                  <TableColumn prefWidth="150.0" style="-fx-alignment: CENTER;" text="Goal [%]" >
+                                  <TableColumn prefWidth="150.0" style="-fx-alignment: CENTER;" text="Goal [%]">
                                       <cellValueFactory>
                                           <PropertyValueFactory property="goalDoneThisMonth" />
                                       </cellValueFactory>
                                   </TableColumn>
-                                  <TableColumn minWidth="0.0" prefWidth="150.0" style="-fx-alignment: CENTER;" text="Avg. day [h]" >
+                                  <TableColumn minWidth="0.0" prefWidth="150.0" style="-fx-alignment: CENTER;" text="Avg. day [h]">
                                       <cellValueFactory>
                                           <PropertyValueFactory property="averageTaskDoneThisMonth" />
                                       </cellValueFactory>
                                   </TableColumn>
                                 </columns>
                               </TableView>
+
+                              <TableView fx:id="allTasksTableView" layoutX="17.0" layoutY="278.0" prefHeight="318.0" prefWidth="816.0">
+                                <columns>
+                                    <TableColumn prefWidth="350.0" style="-fx-alignment: CENTER;" text="Task">
+                                        <cellValueFactory>
+                                            <PropertyValueFactory property="taskName" />
+                                        </cellValueFactory>
+                                    </TableColumn>
+
+                                    <TableColumn minWidth="0.0" prefWidth="150.0" style="-fx-alignment: CENTER;" text="All time [h]">
+                                        <cellValueFactory>
+                                            <PropertyValueFactory property="taskDurationInString" />
+                                        </cellValueFactory>
+                                    </TableColumn>
+
+                                    <TableColumn minWidth="0.0" prefWidth="150.0" style="-fx-alignment: CENTER;" text="Goal chosen">
+                                        <cellValueFactory>
+                                            <PropertyValueFactory property="goalChoice" />
+                                        </cellValueFactory>
+                                    </TableColumn>
+
+                                    <TableColumn minWidth="0.0" prefWidth="150.0" style="-fx-alignment: CENTER;" text="Avg. day [h]">
+                                        <cellValueFactory>
+                                            <PropertyValueFactory property="averageTaskDoneAllTime" />
+                                        </cellValueFactory>
+                                    </TableColumn>
+                                    <TableColumn minWidth="0.0" prefWidth="150.0" style="-fx-alignment: CENTER;" text="Days performed">
+                                        <cellValueFactory>
+                                            <PropertyValueFactory property="daysTaskPerformed" />
+                                        </cellValueFactory>
+                                    </TableColumn>
+
+                                    <TableColumn minWidth="0.0" prefWidth="150.0" style="-fx-alignment: CENTER;" text="Goal set [h]">
+                                        <cellValueFactory>
+                                            <PropertyValueFactory property="goalDurationInString" />
+                                        </cellValueFactory>
+                                    </TableColumn>
+                                    <TableColumn minWidth="0.0" prefWidth="150.0" style="-fx-alignment: CENTER;" text="Goal date">
+                                        <cellValueFactory>
+                                            <PropertyValueFactory property="goalDateInString" />
+                                        </cellValueFactory>
+                                    </TableColumn>
+
+
+
+                                </columns>
+                              </TableView>
+
                            </children>
                         </AnchorPane>
                   </content>
