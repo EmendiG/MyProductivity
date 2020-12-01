@@ -65,8 +65,8 @@ public class MainController {
         populateBarChart();
         // TAB 3
         setVariablesForTab3Table();
-        populateMonthTable(LocalDate.of(1970,1,1), LocalDate.now().plusDays(1));
-        populateAllTaskTable();
+        populateMonthTable();
+        populateAllTaskTable(LocalDate.of(1970,1,1), LocalDate.now().plusDays(1));
     }
 
     public void startCurrentTask() {
@@ -515,24 +515,24 @@ public class MainController {
         startDatePickerTab3.valueProperty().addListener((observableValue, localDate, t1) -> {
             if (localDate != t1) {
                 startDate.set(observableValue.getValue());
-                populateMonthTable(startDate.get(), endDate.get());
+                populateAllTaskTable(startDate.get(), endDate.get());
             }
         });
 
         endDatePickerTab3.valueProperty().addListener((observableValue, localDate, t1) -> {
             if (localDate != t1) {
                 endDate.set(observableValue.getValue());
-                populateMonthTable(startDate.get(), endDate.get());
+                populateAllTaskTable(startDate.get(), endDate.get());
             }
         });
     }
 
-    private void populateMonthTable(LocalDate startTime, LocalDate endTime) {
+    private void populateMonthTable() {
         List<AllTimeTasks> tasksInTimeRangeMappedToDays =
                 Postgresql.getInstance()
                         .getSortedTaskByLengthInTimeRange(0,
-                                Timestamp.valueOf(startTime.atStartOfDay()),
-                                Timestamp.valueOf(endTime.atStartOfDay()),
+                                new Timestamp(0L),
+                                new Timestamp(System.currentTimeMillis() + 10000),
                                 30,
                                 Weekdays.EVERYDAY.weekday
                         );
@@ -548,12 +548,12 @@ public class MainController {
         monthTableView.setItems(filteredObservableTaskList);
     }
 
-    private void populateAllTaskTable() {
+    private void populateAllTaskTable(LocalDate startTime, LocalDate endTime) {
         ObservableList<AllTimeTasks> observableAllTaskAllTimeList = FXCollections.observableArrayList(
                 Postgresql.getInstance()
                         .getSortedTaskByLengthInTimeRange(0,
-                                new Timestamp(0L),
-                                new Timestamp(System.currentTimeMillis() + 10000),
+                                Timestamp.valueOf(startTime.atStartOfDay()),
+                                Timestamp.valueOf(endTime.atStartOfDay()),
                                 999999,
                                 null
                         )
