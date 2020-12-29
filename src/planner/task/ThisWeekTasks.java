@@ -1,4 +1,6 @@
-package planner;
+package planner.task;
+
+import planner.functionalities.CalendarDate;
 
 import java.time.LocalDate;
 import java.util.*;

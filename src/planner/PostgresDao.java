@@ -1,14 +1,20 @@
 package planner;
 
-import java.lang.reflect.InvocationTargetException;
+import planner.functionalities.CalendarDate;
+import planner.task.AllTimeTasks;
+import planner.task.NewTasks;
+import planner.task.Tasks;
+import planner.task.ThisMonthTasks;
+
 import java.sql.*;
+import java.util.*;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class Postgresql {
+public class PostgresDao {
     public static final String DB_NAME = "myproductivitydb";
     public static final String CONNECTION_STRING = "jdbc:postgresql://localhost:5432/" + DB_NAME;
     public static final String DB_USER = "planner";
@@ -122,9 +128,9 @@ public class Postgresql {
     private Statement stmt;
 
     // not thread safe
-    private static Postgresql instance = new Postgresql();
-    private Postgresql(){}
-    public static Postgresql getInstance() {
+    private static final PostgresDao instance = new PostgresDao();
+    private PostgresDao(){}
+    public static PostgresDao getInstance() {
         return instance;
     }
 

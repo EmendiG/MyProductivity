@@ -1,4 +1,4 @@
-package planner;
+package planner.functionalities;
 
 //
 // Source code recreated from a .class file by IntelliJ IDEA

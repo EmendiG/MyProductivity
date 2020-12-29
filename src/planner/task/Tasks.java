@@ -1,4 +1,4 @@
-package planner;
+package planner.task;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleLongProperty;
@@ -8,7 +8,6 @@ public class Tasks {
     protected SimpleIntegerProperty taskID;
     protected SimpleStringProperty taskName;
     protected SimpleLongProperty sqlID;
-
 
 
     public Tasks() {

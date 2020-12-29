@@ -1,4 +1,4 @@
-package planner;
+package planner.functionalities;
 
 import javafx.application.Platform;
 import javafx.scene.control.Label;

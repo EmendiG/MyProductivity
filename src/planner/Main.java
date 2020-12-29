@@ -12,7 +12,7 @@ import java.sql.SQLException;
 public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("mainwindow.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("controller/mainwindow.fxml"));
         Parent root = loader.load();
 
         primaryStage.setTitle("MyProductivity");
@@ -23,7 +23,7 @@ public class Main extends Application {
     @Override
     public void init() throws Exception {
         super.init();
-        if(!Postgresql.getInstance().open()) {
+        if(!PostgresDao.getInstance().open()) {
             System.out.println("FATAL ERROR: Couldn't connect to database");
             Platform.exit();
         }
@@ -32,18 +32,18 @@ public class Main extends Application {
     @Override
     public void stop() throws Exception {
         super.stop();
-        Postgresql.getInstance().updateEndTimeForLastTaskIfNull();
-        Postgresql.getInstance().close();
+        PostgresDao.getInstance().updateEndTimeForLastTaskIfNull();
+        PostgresDao.getInstance().close();
     }
 
     public static void main(String[] args) {
         try {
-            Postgresql.getInstance().open();
-            Postgresql.getInstance().setUpTable(Postgresql.CREATE_TABLE_TASKS);
-            Postgresql.getInstance().setUpTable(Postgresql.CREATE_TABLE_TASKNAMES);
-            Postgresql.getInstance().setUpTable(Postgresql.CREATE_TABLE_GOALS);
-            Postgresql.getInstance().deleteTasksWithoutEndTime();
-            Postgresql.getInstance().close();
+            PostgresDao.getInstance().open();
+            PostgresDao.getInstance().setUpTable(PostgresDao.CREATE_TABLE_TASKS);
+            PostgresDao.getInstance().setUpTable(PostgresDao.CREATE_TABLE_TASKNAMES);
+            PostgresDao.getInstance().setUpTable(PostgresDao.CREATE_TABLE_GOALS);
+            PostgresDao.getInstance().deleteTasksWithoutEndTime();
+            PostgresDao.getInstance().close();
 
 
         } catch (SQLException e) {

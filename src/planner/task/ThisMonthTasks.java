@@ -1,4 +1,6 @@
-package planner;
+package planner.task;
+
+import planner.functionalities.CalendarDate;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -56,11 +58,16 @@ public class ThisMonthTasks extends ThisWeekTasks {
 
         int daysDone = 1;
         if (!this.getHowLongTaskDoneADay().keySet().isEmpty()) {
-            for (LocalDate dateMeasurement :  this.getHowLongTaskDoneADay().keySet()) {
-                if (ChronoUnit.DAYS.between(dateMeasurement, LocalDate.now()) < 30)
-                    daysDone ++;
+            for (LocalDate dateMeasurement : this.getHowLongTaskDoneADay().keySet()) {
+                if (ChronoUnit.DAYS.between(dateMeasurement, LocalDate.now()) < 30) {
+                    daysDone++;
+                }
+
             }
-            daysDone --;
+            daysDone--;
+        }
+        if (daysDone==0) {
+            daysDone=1;
         }
         long average = this.taskDoneThisPeriod.get() / daysDone;
 

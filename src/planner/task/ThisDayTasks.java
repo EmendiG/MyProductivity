@@ -1,11 +1,9 @@
-package planner;
+package planner.task;
 
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
+import planner.functionalities.CalendarDate;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
@@ -13,9 +11,7 @@ public class ThisDayTasks extends Tasks {
     protected final SimpleStringProperty goalChoice;
     protected final SimpleLongProperty goalDate;
 
-
     protected final SimpleLongProperty goalDuration;
-
     protected String goalDoneToday;
     protected String goalLeftToday;
 
@@ -28,7 +24,6 @@ public class ThisDayTasks extends Tasks {
         super();
         this.goalChoice = new SimpleStringProperty();
         this.goalDate = new SimpleLongProperty();
-
 
         // goalDuration == goalDoneToday + goalLeftToday
         this.goalDuration = new SimpleLongProperty();

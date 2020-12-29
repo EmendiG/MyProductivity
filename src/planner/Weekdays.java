@@ -15,7 +15,7 @@ public enum Weekdays {
     String weekday;
     Integer nDay;
 
-    private Weekdays(int nWeek, String name) {
+    Weekdays(int nWeek, String name) {
         weekday = name;
         nDay = nWeek;
     }
@@ -25,6 +25,14 @@ public enum Weekdays {
             if (weekdays.nDay.equals(nDay))
                 return weekdays.name();
         return null;
+    }
+
+    public String getWeekday() {
+        return weekday;
+    }
+
+    public Integer getnDay() {
+        return nDay;
     }
 
     @Override

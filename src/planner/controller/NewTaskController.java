@@ -1,15 +1,13 @@
-package planner;
+package planner.controller;
 
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import planner.task.NewTasks;
 
 import java.time.LocalDate;
 
 public class NewTaskController {
-
-    @FXML
-    private DialogPane newTaskWindow;
 
     @FXML
     private ChoiceBox<String> goalChoiceBox;
@@ -29,7 +27,7 @@ public class NewTaskController {
     @FXML
     public void initialize() {
 
-        String st[] = { NewTasks.newTaskChoice.NONE.chosenTaskGoal,
+        String[] st = { NewTasks.newTaskChoice.NONE.chosenTaskGoal,
                         NewTasks.newTaskChoice.DAILY.chosenTaskGoal,
                         NewTasks.newTaskChoice.WEEKLY.chosenTaskGoal,
                         NewTasks.newTaskChoice.MONTHLY.chosenTaskGoal,
@@ -48,7 +46,7 @@ public class NewTaskController {
 
     public void showAdditionalElements() {
         boolean visible;
-        if (goalChoiceBox.getValue() != NewTasks.newTaskChoice.NONE.chosenTaskGoal) {
+        if (!goalChoiceBox.getValue().equals(NewTasks.newTaskChoice.NONE.chosenTaskGoal)) {
             visible = true;
         } else {
             visible = false;

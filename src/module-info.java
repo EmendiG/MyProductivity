@@ -10,4 +10,7 @@ module MyProductivity {
 
 
     opens planner;
+    opens planner.task;
+    opens planner.controller;
+    opens planner.functionalities;
 }

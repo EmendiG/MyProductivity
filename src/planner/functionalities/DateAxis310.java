@@ -1,4 +1,4 @@
-package planner;
+package planner.functionalities;
 
 /*
  * Copyright (c) 2013 by Gerrit Grunwald
@@ -39,11 +39,6 @@ import java.util.Collections;
 import java.util.List;
 
 
-/**
- * User: hansolo
- * Date: 16.12.13
- * Time: 15:03
- */
 public class DateAxis310 extends Axis<LocalDateTime> {
     private enum Interval {
         DECADE(ChronoUnit.DECADES, 1),
@@ -81,7 +76,7 @@ public class DateAxis310 extends Axis<LocalDateTime> {
     private       LocalDateTime                                  maxDate;
     private       ObjectProperty<LocalDateTime>                  lowerBound;
     private       ObjectProperty<LocalDateTime>                  upperBound;
-    private       ChartLayoutAnimator                            animator;
+    private ChartLayoutAnimator animator;
     private       Object                                         currentAnimationID;
     private       Interval                                       actualInterval;
 

@@ -1,4 +1,4 @@
-package planner;
+package planner.functionalities;
 
 public class StringSimilarity  {
 

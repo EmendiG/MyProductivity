@@ -1,4 +1,4 @@
-package planner;
+package planner.controller;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -25,6 +25,9 @@ import java.util.stream.Collectors;
 
 import javafx.beans.binding.Bindings;
 import javafx.util.StringConverter;
+import planner.*;
+import planner.functionalities.*;
+import planner.task.*;
 
 
 public class MainController {
@@ -80,7 +83,7 @@ public class MainController {
             return;
         }
 
-        if (selectedTask.goalChoice.get().equals(NewTasks.newTaskChoice.TILL_DATE.chosenTaskGoal)
+        if (selectedTask.getGoalChoice().equals(NewTasks.newTaskChoice.TILL_DATE.chosenTaskGoal)
                 && selectedTask.getGoalDate() < System.currentTimeMillis()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Task selection impossible");
@@ -92,7 +95,7 @@ public class MainController {
         tasksTable.setStyle(" -fx-selection-bar: green; -fx-selection: green; -fx-selection-bar-non-focused: green;");
         tasksTable.setOpacity(1);
         try {
-            currentlyAssignedTask = Postgresql.getInstance().insertTask(selectedTask);
+            currentlyAssignedTask = PostgresDao.getInstance().insertTask(selectedTask);
             startButton.setDisable(true);
             currentTaskLabel.setText(selectedTask.getTaskName());
             showCurrentTimeElapsed();
@@ -105,7 +108,7 @@ public class MainController {
     public void stopCurrentTask() {
         try {
             tasksTable.setDisable(false);
-            Postgresql.getInstance().insertEndTime(currentlyAssignedTask.getID());
+            PostgresDao.getInstance().insertEndTime(currentlyAssignedTask.getID());
             stopButton.setDisable(true);
             currentTaskLabel.setText("None");
             stopCurrentTimeElapsed();
@@ -157,7 +160,7 @@ public class MainController {
             if (newTask.getNewTaskName() == null)
                 showNewTaskWindow();
             else {
-                List<String> listedTasknames = Postgresql.getInstance().getListedTasknames();
+                List<String> listedTasknames = PostgresDao.getInstance().getListedTasknames();
                 Alert alert;
                 Alert successfullyAddedTaskAlert = new Alert(Alert.AlertType.INFORMATION);
                 successfullyAddedTaskAlert.setTitle("Task added");
@@ -182,12 +185,12 @@ public class MainController {
                     alert.setContentText("Are you sure that you want to add task?");
                     Optional<ButtonType> buttonType = alert.showAndWait();
                     if (buttonType.isPresent() && buttonType.get() == ButtonType.OK) {
-                        Postgresql.getInstance().insertNewGoal(newTask);
+                        PostgresDao.getInstance().insertNewGoal(newTask);
                         successfullyAddedTaskAlert.show();
                         updateListView(tasksTable.getItems().size(), newTask.getNewTaskName());
                     }
                 } else if (!theSameTask) {
-                    Postgresql.getInstance().insertNewGoal(newTask);
+                    PostgresDao.getInstance().insertNewGoal(newTask);
                     successfullyAddedTaskAlert.show();
                     updateListView(tasksTable.getItems().size(), newTask.getNewTaskName());
                 } else {
@@ -206,7 +209,7 @@ public class MainController {
 
     private void updateListView(int taskSelected, String currentTaskAssigned) {
         observableAllTaskList = FXCollections.observableArrayList(
-                Postgresql.getInstance()
+                PostgresDao.getInstance()
                         .getSortedTaskByLengthInTimeRange(0,
                                 new Timestamp(0L),
                                 new Timestamp(System.currentTimeMillis() + 10000),
@@ -265,9 +268,9 @@ public class MainController {
 
     private void updateWeeklyTableView() {
 
-        // offset by 6 day, where 7th day is today (week = 6 past days + today)
+        // offset by 6 days, where 7th day is today (week = 6 past days + today)
         ObservableList<ThisWeekTasks> observableWeekTaskList = FXCollections.observableArrayList(
-                Postgresql.getInstance()
+                PostgresDao.getInstance()
                         .getSortedTaskByLengthInTimeRange(0,
                                 new Timestamp(0L),
                                 new Timestamp(System.currentTimeMillis() + 10000),
@@ -325,20 +328,20 @@ public class MainController {
         taskChoiceBoxTab2.setValue(allTasks);
 
         AtomicReference<Integer> taskChosen = new AtomicReference<>(0);
-        AtomicReference<Integer> dayChosen = new AtomicReference<>(Weekdays.EVERYDAY.nDay);
+        AtomicReference<Integer> dayChosen = new AtomicReference<>(Weekdays.EVERYDAY.getnDay());
         AtomicReference<LocalDate> startDate = new AtomicReference<>(LocalDate.of(1970, 1, 1));
         AtomicReference<LocalDate> endDate = new AtomicReference<>(LocalDate.now().plus(1, ChronoUnit.DAYS));
 
         taskChoiceBoxTab2.valueProperty().addListener((observableValue, thisDayTasks, t1) -> {
             if (thisDayTasks != t1) {
-                taskChosen.set(observableValue.getValue().taskID.get());
+                taskChosen.set(observableValue.getValue().getTaskID());
                 populateLinearGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
             }
         });
 
         dayChoiceBox.valueProperty().addListener((observableValue, todayTasks, t1) -> {
             if (todayTasks != t1) {
-                dayChosen.set(observableValue.getValue().nDay);
+                dayChosen.set(observableValue.getValue().getnDay());
                 populateLinearGraph(taskChosen.get(), startDate.get(), endDate.get(), dayChosen.get());
             }
         });
@@ -361,7 +364,7 @@ public class MainController {
 
     private void populateLinearGraph(int taskId, LocalDate startTime, LocalDate endTime, int dayChosen) {
         List<AllTimeTasks> tasksInTimeRangeMappedToDays =
-                Postgresql.getInstance()
+                PostgresDao.getInstance()
                         .getSortedTaskByLengthInTimeRange(taskId,
                                 Timestamp.valueOf(startTime.atStartOfDay()),
                                 Timestamp.valueOf(endTime.atStartOfDay()),
@@ -396,7 +399,6 @@ public class MainController {
                             })
             );
             series.setName( tasksInTimeRangeMappedToDays.get(0).getTaskName().trim() );
-            regression.setName("regression");
 
         } else {
             // "ALL TASKS" should be summed up to one value
@@ -415,8 +417,8 @@ public class MainController {
                 doubleYList.add(v.doubleValue());
             });
             series.setName(ThisDayTasks.TodayTasksChoice.ALLTASKS.toString());
-            regression.setName("regression");
         }
+        regression.setName("regression");
 
         double[] doubleXArray = doubleXList.stream().mapToDouble(Double::doubleValue).toArray();
         double[] doubleYArray = doubleYList.stream().mapToDouble(Double::doubleValue).toArray();
@@ -436,7 +438,7 @@ public class MainController {
         regression.getData().addAll(new XYChart.Data<>(LocalDateTime.of(lastDate.getYear(), lastDate.getMonthValue(), lastDate.getDayOfMonth(), 0, 0, 0), lastPrediction) );
 
         xAxisLinearChart.setTickLabelRotation(-15);
-        yAxisLinearChart.setTickLabelFormatter(new StringConverter<Number>() {
+        yAxisLinearChart.setTickLabelFormatter(new StringConverter<>() {
             @Override
             public String toString(Number number) {
                 return String.format("%02d:%02d",
@@ -473,7 +475,7 @@ public class MainController {
                 series.getData().addAll( new XYChart.Data<>(x.getTaskName(), x.getTaskDuration()) )
         );
 
-        yAxis.setTickLabelFormatter(new StringConverter<Number>() {
+        yAxis.setTickLabelFormatter(new StringConverter<>() {
             @Override
             public String toString(Number number) {
                 return String.format("%02d:%02d",
@@ -529,12 +531,12 @@ public class MainController {
 
     private void populateMonthTable() {
         List<AllTimeTasks> tasksInTimeRangeMappedToDays =
-                Postgresql.getInstance()
+                PostgresDao.getInstance()
                         .getSortedTaskByLengthInTimeRange(0,
                                 new Timestamp(0L),
                                 new Timestamp(System.currentTimeMillis() + 10000),
                                 30,
-                                Weekdays.EVERYDAY.weekday
+                                Weekdays.EVERYDAY.getWeekday()
                         );
 
         ObservableList<ThisMonthTasks> filteredObservableTaskList = FXCollections.observableArrayList(tasksInTimeRangeMappedToDays
@@ -550,7 +552,7 @@ public class MainController {
 
     private void populateAllTaskTable(LocalDate startTime, LocalDate endTime) {
         ObservableList<AllTimeTasks> observableAllTaskAllTimeList = FXCollections.observableArrayList(
-                Postgresql.getInstance()
+                PostgresDao.getInstance()
                         .getSortedTaskByLengthInTimeRange(0,
                                 Timestamp.valueOf(startTime.atStartOfDay()),
                                 Timestamp.valueOf(endTime.atStartOfDay()),

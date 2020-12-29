@@ -1,4 +1,4 @@
-package planner;
+package planner.task;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -19,7 +19,7 @@ public class NewTasks {
         MONTHLY("Monthly"),
         TILL_DATE("Till date");
 
-        String chosenTaskGoal;
+        public String chosenTaskGoal;
 
         private newTaskChoice(String choice) {
             chosenTaskGoal = choice;

@@ -1,4 +1,4 @@
-package planner;
+package planner.functionalities;
 
 import javafx.scene.Node;
 import javafx.scene.chart.Axis;
@@ -27,58 +27,42 @@ public class CustomBar<X, Y> extends BarChart<X, Y> {
 
     @Override
     protected void seriesAdded(Series<X, Y> series, int seriesIndex) {
-
         super.seriesAdded(series, seriesIndex);
-
         for (int j = 0; j < series.getData().size(); j++) {
-
             Data<X, Y> item = series.getData().get(j);
-
             Text text = new Text(String.format("%02d:%02d",
                     TimeUnit.MILLISECONDS.toHours((long) item.getYValue()),
                     TimeUnit.MILLISECONDS.toMinutes((long) item.getYValue()) -
                             TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours((long) item.getYValue()))));
-
             text.setStyle("-fx-font-size: 10pt;");
 
             TextFlow textFlow = new TextFlow(text);
             textFlow.setTextAlignment(TextAlignment.CENTER);
-
             nodeMap.put(item.getNode(), textFlow);
             this.getPlotChildren().add(textFlow);
-
         }
-
     }
 
     @Override
     protected void seriesRemoved(final Series<X, Y> series) {
-
         for (Node bar : nodeMap.keySet()) {
-
             Node text = nodeMap.get(bar);
             this.getPlotChildren().remove(text);
-
         }
-
         nodeMap.clear();
-
         super.seriesRemoved(series);
     }
 
     @Override
     protected void layoutPlotChildren() {
-
         super.layoutPlotChildren();
-
         for (Node bar : nodeMap.keySet()) {
-
             TextFlow textFlow = nodeMap.get(bar);
-
             if (bar.getBoundsInParent().getHeight() > 30) {
                 ((Text) textFlow.getChildren().get(0)).setFill(Color.WHITE);
                 textFlow.resize(bar.getBoundsInParent().getWidth(), 200);
                 textFlow.relocate(bar.getBoundsInParent().getMinX(), bar.getBoundsInParent().getMinY() + 10);
+
             } else {
                 ((Text) textFlow.getChildren().get(0)).setFill(Color.BLACK);
                 textFlow.resize(bar.getBoundsInParent().getWidth(), 200);

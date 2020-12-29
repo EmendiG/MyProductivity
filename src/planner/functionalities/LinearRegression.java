@@ -1,4 +1,4 @@
-package planner;
+package planner.functionalities;
 
 /**
  *  The {@code LinearRegression} class performs a simple linear regression

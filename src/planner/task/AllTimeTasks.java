@@ -1,4 +1,4 @@
-package planner;
+package planner.task;
 
 import javafx.beans.property.SimpleStringProperty;
 
