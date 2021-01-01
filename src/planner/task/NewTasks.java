@@ -21,7 +21,7 @@ public class NewTasks {
 
         public String chosenTaskGoal;
 
-        private newTaskChoice(String choice) {
+        newTaskChoice(String choice) {
             chosenTaskGoal = choice;
         }
     }

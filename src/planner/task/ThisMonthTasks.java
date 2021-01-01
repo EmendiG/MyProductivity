@@ -66,7 +66,7 @@ public class ThisMonthTasks extends ThisWeekTasks {
             }
             daysDone--;
         }
-        if (daysDone==0) {
+        if (daysDone<1) {
             daysDone=1;
         }
         long average = this.taskDoneThisPeriod.get() / daysDone;

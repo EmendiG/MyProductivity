@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import java.sql.SQLException;
 
@@ -15,6 +16,7 @@ public class Main extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("controller/mainwindow.fxml"));
         Parent root = loader.load();
 
+        primaryStage.getIcons().add(new Image("favicon.png"));
         primaryStage.setTitle("MyProductivity");
         primaryStage.setScene(new Scene(root, 850, 680));
         primaryStage.show();

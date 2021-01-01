@@ -17,7 +17,6 @@ public class Tasks {
 
     }
 
-
     public int getTaskID() {
         return taskID.get();
     }

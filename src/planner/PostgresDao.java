@@ -201,7 +201,7 @@ public class PostgresDao {
         try (Connection conn = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASS);
              Statement stmt = conn.createStatement()) {
 
-            // calendar to check task duration performed today / in the past
+            // calendar to check task duration performed today / in the past (hence offset)
             Calendar calEnd = new CalendarDate(dayOffset).getOffsettedCalendar();
             List<AllTimeTasks> tasks = new ArrayList<>();
             ResultSet rs = stmt.executeQuery(sb.toString());
