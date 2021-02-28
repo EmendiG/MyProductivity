@@ -1,2 +1,3 @@
 # MyProductivity
-Planner GUI combined with task analysis and goal setting
+Basic planner GUI combined with task analysis and goal setting <br/>
+Executable application created for a personal usage, based on JavaFX and PostgreSQL
